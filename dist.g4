@@ -3,12 +3,11 @@ grammar dist;
  * Parser Rules
  */
 
-<<<<<<< Updated upstream
-dist							: vars EOF;	
+dist							: vars_arreglo vars_arreglo posicion_arreglo posicion_arreglo EOF;
 expresion          				: exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
 exp								: termino (('+' | '-') termino)*;
 termino							: factor (('*' | '/') factor)*;
-factor							: ('(' expresion ')') | 
+factor							: ('(' expresion ')') |
 									(('+' | '-')? var_cte);
 var_cte							: cte | ID;
 cte								: CTE_I | CTE_F | CTE_C | CTE_B | NULL;
@@ -16,19 +15,9 @@ lectura							: READ '(' ID ')';
 tipo							: INT | FLOAT | CHAR | BOOL;
 tipo_funcion					: tipo | VOID;
 vars							: VAR ID (',' ID)* ':' tipo;
-=======
-dist				: expresion EOF;
-expresion           : exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
-exp					: termino (('+' | '-') termino)*;
-termino				: factor (('*' | '/') factor)*;
-factor				: ('(' expresion ')') |
-					  (('+' | '-')? var_cte);
-var_cte				: CTE | ID;
-tipo				: INT;
->>>>>>> Stashed changes
 
 
-vars_arreglo                    : VAR ID '[' CET_I ']' (dimension_uno) | ('[' CET_I ']' dimension_dos) ';';
+vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos )) ';';
 mult_cte                        : '{' cte (',' cte)* '}';
 dimension_uno                   : ':' tipo '=' mult_cte;
 dimension_dos                   : ':' tipo '=' '{' mult_cte (',' mult_cte)*  '}' ;
