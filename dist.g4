@@ -3,18 +3,25 @@ grammar dist;
  * Parser Rules
  */
 
-dist							              : vars_arreglo vars_arreglo posicion_arreglo posicion_arreglo EOF;
-expresion          	      			: exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
-exp								              : termino (('+' | '-') termino)*;
-termino							            : factor (('*' | '/') factor)*;
-factor						            	: ('(' expresion ')') | (('+' | '-')? var_cte);
-var_cte				             			: cte | ID;
-cte						               		: CTE_I | CTE_F | CTE_C | CTE_B | NULL;
-lectura					            		: READ '(' ID ')';
-tipo						              	: INT | FLOAT | CHAR | BOOL;
-tipo_funcion			           		: tipo | VOID;
-vars						               	: VAR ID (',' ID)* ':' tipo;
-
+dist							: llamada_funcion EOF;	
+expresion          				: exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
+exp								: termino (('+' | '-') termino)*;
+termino							: factor (('*' | '/') factor)*;
+factor							: ('(' expresion ')') | 
+									(('+' | '-')? var_cte);
+var_cte							: cte | ID;
+cte								: CTE_I | CTE_F | CTE_C | CTE_B | NULL;
+lectura							: READ '(' ID ')';
+escritura						: PRINT '(' (expresion | CTE_STRING) (',' (expresion | CTE_STRING))* ')';
+tipo							: INT | FLOAT | CHAR | BOOL;
+tipo_funcion					: tipo | VOID;
+vars							: VAR ID (',' ID)* ':' tipo;
+returnn							: RETURN expresion;
+funcion_especial				: SIZE | POW | SQRT | PROB | MOMENT | VARIANCE | MODE | MEDIAN |
+									PLOT_HISTOGRAM | EXP_BERNOULLI | VAR_BERNOULLI | PROB_BINOMIAL | EXP_BINOMIAL |
+									VAR_BINOMIAL | PROB_GEOMETRIC | EXP_GEOMETRIC | VAR_GEOMETRIC;
+llamada_funcion_especial		: funcion_especial '(' expresion? (',' expresion)* ')';
+llamada_funcion					: ID '(' expresion? (',' expresion)* ')';
 
 vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos )) ';';
 mult_cte                        : '{' cte (',' cte)* '}';
