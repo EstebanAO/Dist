@@ -3,31 +3,43 @@ grammar dist;
  * Parser Rules
  */
 
-dist							: llamada_funcion EOF;	
-expresion          				: exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
-exp								: termino (('+' | '-') termino)*;
-termino							: factor (('*' | '/') factor)*;
-factor							: ('(' expresion ')') | 
-									(('+' | '-')? var_cte);
-var_cte							: cte | ID;
-cte								: CTE_I | CTE_F | CTE_C | CTE_B | NULL;
-lectura							: READ '(' ID ')';
-escritura						: PRINT '(' (expresion | CTE_STRING) (',' (expresion | CTE_STRING))* ')';
-tipo							: INT | FLOAT | CHAR | BOOL;
-tipo_funcion					: tipo | VOID;
-vars							: VAR ID (',' ID)* ':' tipo;
-returnn							: RETURN expresion;
-funcion_especial				: SIZE | POW | SQRT | PROB | MOMENT | VARIANCE | MODE | MEDIAN |
-									PLOT_HISTOGRAM | EXP_BERNOULLI | VAR_BERNOULLI | PROB_BINOMIAL | EXP_BINOMIAL |
-									VAR_BINOMIAL | PROB_GEOMETRIC | EXP_GEOMETRIC | VAR_GEOMETRIC;
-llamada_funcion_especial		: funcion_especial '(' expresion? (',' expresion)* ')';
-llamada_funcion					: ID '(' expresion? (',' expresion)* ')';
+dist                            : llamada_funcion EOF;
+programa                        : PROGRAM ID ';' ((vars | vars_arreglo) ';')* funcion* MAIN bloque_local;
+
+expresion                       : exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
+exp                             : termino (('+' | '-') termino)*;
+termino                         : factor (('*' | '/') factor)*;
+factor                          : ('(' expresion ')') |
+                                  (('+' | '-')? var_cte);
+var_cte                         : cte | ID;
+cte                             : CTE_I | CTE_F | CTE_C | CTE_B | NULL;
+lectura                         : READ '(' ID ')';
+escritura                       : PRINT '(' (expresion | CTE_STRING) (',' (expresion | CTE_STRING))* ')';
+tipo                            : INT | FLOAT | CHAR | BOOL;
+tipo_funcion                    : tipo | VOID;
+vars                            : VAR ID (',' ID)* ':' tipo;
+returnn							            : RETURN expresion;
+funcion_especial                : SIZE | POW | SQRT | PROB | MOMENT | VARIANCE | MODE | MEDIAN |
+                                  PLOT_HISTOGRAM | EXP_BERNOULLI | VAR_BERNOULLI | PROB_BINOMIAL | EXP_BINOMIAL |
+                                  VAR_BINOMIAL | PROB_GEOMETRIC | EXP_GEOMETRIC | VAR_GEOMETRIC;
+llamada_funcion_especial        : funcion_especial '(' expresion? (',' expresion)* ')';
+llamada_funcion					        : ID '(' expresion? (',' expresion)* ')';
+funcion                         : FUN ID '(' ((ID ':' TIPO) (',' ID ':' TIPO)*)? ')' ':' tipo_funcion bloque_local;
 
 vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos )) ';';
 mult_cte                        : '{' cte (',' cte)* '}';
 dimension_uno                   : ':' tipo '=' mult_cte;
 dimension_dos                   : ':' tipo '=' '{' mult_cte (',' mult_cte)*  '}' ;
 posicion_arreglo                : ID '[' exp ']' ('[' exp ']')?;
+
+estatuto                        : asignacion | condicion | while | escritura | lectura | llamada_funcion | llamada_funciones_especiales returnn;
+
+bloque_condicional              : '{' estatuto* '}';
+bloque_local                    : '{' (vars | vars_arreglo)* estatuto* '}';
+asignacion                      : (ID | posicion_arreglo) '=' expresion;
+
+condicion                       : IF '(' expresion ')' bloque_condicional (ELSE bloque_condicional)?;
+while                           : WHILE '(' expresion ')' bloque_condicional;
 
 /*
  * Lexer Rules
