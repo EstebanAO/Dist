@@ -3,6 +3,7 @@ grammar dist;
  * Parser Rules
  */
 
+<<<<<<< Updated upstream
 dist							: vars EOF;	
 expresion          				: exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
 exp								: termino (('+' | '-') termino)*;
@@ -15,6 +16,23 @@ lectura							: READ '(' ID ')';
 tipo							: INT | FLOAT | CHAR | BOOL;
 tipo_funcion					: tipo | VOID;
 vars							: VAR ID (',' ID)* ':' tipo;
+=======
+dist				: expresion EOF;
+expresion           : exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
+exp					: termino (('+' | '-') termino)*;
+termino				: factor (('*' | '/') factor)*;
+factor				: ('(' expresion ')') |
+					  (('+' | '-')? var_cte);
+var_cte				: CTE | ID;
+tipo				: INT;
+>>>>>>> Stashed changes
+
+
+vars_arreglo                    : VAR ID '[' CET_I ']' (dimension_uno) | ('[' CET_I ']' dimension_dos) ';';
+mult_cte                        : '{' cte (',' cte)* '}';
+dimension_uno                   : ':' tipo '=' mult_cte;
+dimension_dos                   : ':' tipo '=' '{' mult_cte (',' mult_cte)*  '}' ;
+posicion_arreglo                : ID '[' exp ']' ('[' exp ']')?;
 
 /*
  * Lexer Rules
@@ -46,7 +64,7 @@ vars							: VAR ID (',' ID)* ':' tipo;
  RETURN                         : 'r' 'e' 't' 'u' 'r' 'n';
  READ                           : 'r' 'e' 'a' 'd';
  FUN                            : 'f' 'u' 'n';
- 
+
  SIZE                           : 's' 'i' 'z' 'e';
  POW                            : 'p' 'o' 'w';
  SQRT                           : 's' 'q' 'r' 't';
