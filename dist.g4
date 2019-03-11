@@ -1,16 +1,20 @@
-grammar Dist;
+grammar dist;
 /*
  * Parser Rules
  */
 
-dist				: expresion EOF;	
-expresion           : exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
-exp					: termino (('+' | '-') termino)*;
-termino				: factor (('*' | '/') factor)*;
-factor				: ('(' expresion ')') | 
-					  (('+' | '-')? var_cte);
-var_cte				: CTE | ID;
-tipo				: INT;
+dist							: vars EOF;	
+expresion          				: exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
+exp								: termino (('+' | '-') termino)*;
+termino							: factor (('*' | '/') factor)*;
+factor							: ('(' expresion ')') | 
+									(('+' | '-')? var_cte);
+var_cte							: cte | ID;
+cte								: CTE_I | CTE_F | CTE_C | CTE_B | NULL;
+lectura							: READ '(' ID ')';
+tipo							: INT | FLOAT | CHAR | BOOL;
+tipo_funcion					: tipo | VOID;
+vars							: VAR ID (',' ID)* ':' tipo;
 
 /*
  * Lexer Rules
@@ -20,11 +24,10 @@ tipo				: INT;
  fragment UPPERCASE             : [A-Z];
  fragment DIGIT                 : [0-9];
 
- ID                             : (LOWERCASE)(UPPERCASE | LOWERCASE | DIGIT)*;
- CTE_I                          : (DIGIT)+;
  CTE_F                          : (DIGIT)+ '.' (DIGIT)+;
+ CTE_I                          : (DIGIT)+;
  CTE_C                          : ('\'' LOWERCASE '\'') | ('\'' UPPERCASE '\'') | ('\'' DIGIT '\'');
- CTE_BOOL                       : ('t' 'r' 'u' 'e') | ('f' 'a' 'l' 's' 'e');
+ CTE_B                       	: ('t' 'r' 'u' 'e') | ('f' 'a' 'l' 's' 'e');
  CTE_STRING                     : '"' .*? '"';
  NULL                           : 'n' 'u' 'l' 'l';
 
@@ -61,6 +64,7 @@ tipo				: INT;
  PROB_GEOMETRIC                 : 'p' 'r' 'o' 'b' '_' 'g' 'e' 'o' 'm' 'e' 't' 'r' 'i' 'c';
  EXP_GEOMETRIC                  : 'e' 'x' 'p' '_' 'g' 'e' 'o' 'm' 'e' 't' 'r' 'i' 'c';
  VAR_GEOMETRIC                  : 'v' 'a' 'r' '_' 'g' 'e' 'o' 'm' 'e' 't' 'r' 'i' 'c';
+ ID                             : (LOWERCASE)(UPPERCASE | LOWERCASE | DIGIT)*;
 
  NEWLINE                        : ('\r'? '\n' | '\r')+ -> skip;
  WHITESPACE                     : (' ' | '\t') -> skip;
