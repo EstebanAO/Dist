@@ -1,3 +1,17 @@
+grammar Dist;
+/*
+ * Parser Rules
+ */
+
+dist				: expresion EOF;	
+expresion           : exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
+exp					: termino (('+' | '-') termino)*;
+termino				: factor (('*' | '/') factor)*;
+factor				: ('(' expresion ')') | 
+					  (('+' | '-')? var_cte);
+var_cte				: CTE | ID;
+tipo				: INT;
+
 /*
  * Lexer Rules
  */
