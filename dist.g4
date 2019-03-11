@@ -3,18 +3,17 @@ grammar dist;
  * Parser Rules
  */
 
-dist							: vars_arreglo vars_arreglo posicion_arreglo posicion_arreglo EOF;
-expresion          				: exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
-exp								: termino (('+' | '-') termino)*;
-termino							: factor (('*' | '/') factor)*;
-factor							: ('(' expresion ')') |
-									(('+' | '-')? var_cte);
-var_cte							: cte | ID;
-cte								: CTE_I | CTE_F | CTE_C | CTE_B | NULL;
-lectura							: READ '(' ID ')';
-tipo							: INT | FLOAT | CHAR | BOOL;
-tipo_funcion					: tipo | VOID;
-vars							: VAR ID (',' ID)* ':' tipo;
+dist							              : vars_arreglo vars_arreglo posicion_arreglo posicion_arreglo EOF;
+expresion          	      			: exp (('<' | '>' | '!=' | '&&' | '||' | '<=' | '>=' | '==') exp)?;
+exp								              : termino (('+' | '-') termino)*;
+termino							            : factor (('*' | '/') factor)*;
+factor						            	: ('(' expresion ')') | (('+' | '-')? var_cte);
+var_cte				             			: cte | ID;
+cte						               		: CTE_I | CTE_F | CTE_C | CTE_B | NULL;
+lectura					            		: READ '(' ID ')';
+tipo						              	: INT | FLOAT | CHAR | BOOL;
+tipo_funcion			           		: tipo | VOID;
+vars						               	: VAR ID (',' ID)* ':' tipo;
 
 
 vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos )) ';';
@@ -34,7 +33,7 @@ posicion_arreglo                : ID '[' exp ']' ('[' exp ']')?;
  CTE_F                          : (DIGIT)+ '.' (DIGIT)+;
  CTE_I                          : (DIGIT)+;
  CTE_C                          : ('\'' LOWERCASE '\'') | ('\'' UPPERCASE '\'') | ('\'' DIGIT '\'');
- CTE_B                       	: ('t' 'r' 'u' 'e') | ('f' 'a' 'l' 's' 'e');
+ CTE_B                       	  : ('t' 'r' 'u' 'e') | ('f' 'a' 'l' 's' 'e');
  CTE_STRING                     : '"' .*? '"';
  NULL                           : 'n' 'u' 'l' 'l';
 
