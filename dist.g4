@@ -12,7 +12,7 @@ exp                             : termino (('+' | '-') termino)*;
 termino                         : factor (('*' | '/') factor)*;
 factor                          : ('(' expresion ')') |
                                   (('+' | '-')? var_cte);
-var_cte                         : cte | ID;
+var_cte                         : cte | ID | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
 cte                             : CTE_I | CTE_F | CTE_C | CTE_B | NULL;
 lectura                         : READ '(' (ID | posicion_arreglo) ')';
 escritura                       : PRINT '(' (expresion | CTE_STRING) (',' (expresion | CTE_STRING))* ')';
@@ -35,16 +35,16 @@ llamada_funcion_especial        : (SIZE | VARIANCE | MODE | MEDIAN |
 llamada_funcion					        : ID '(' expresion? (',' expresion)* ')';
 funcion                         : FUN ID '(' ((ID ':' tipo) (',' ID ':' tipo)*)? ')' ':' tipo_funcion bloque_local;
 
-vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos )) ';';
+vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos ));
 mult_cte                        : '{' cte (',' cte)* '}';
 dimension_uno                   : ':' tipo '=' mult_cte;
 dimension_dos                   : ':' tipo '=' '{' mult_cte (',' mult_cte)*  '}' ;
 posicion_arreglo                : ID '[' exp ']' ('[' exp ']')?;
 
-estatuto                        : asignacion | condicion | while_cycle | escritura | lectura | llamada_funcion | llamada_funcion_especial | returnn;
+estatuto                        : (asignacion | condicion | while_cycle | escritura | lectura | llamada_funcion | llamada_funcion_especial | returnn) ';';
 
 bloque_condicional              : '{' estatuto* '}';
-bloque_local                    : '{' (vars | vars_arreglo)* estatuto* '}';
+bloque_local                    : '{' ((vars | vars_arreglo) ';')* estatuto* '}';
 asignacion                      : (ID | posicion_arreglo) '=' expresion;
 
 condicion                       : IF '(' expresion ')' bloque_condicional (ELSE bloque_condicional)?;
