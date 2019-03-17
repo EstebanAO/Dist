@@ -41,6 +41,13 @@ asignacion                      : (ID | posicion_arreglo) '=' expresion;
 condicion                       : IF '(' expresion ')' bloque_condicional (ELSE bloque_condicional)?;
 while                           : WHILE '(' expresion ')' bloque_condicional;
 
+
+vars_arreglo                    : VAR ID '[' CET_I ']' (dimension_uno) | ('[' CET_I ']' dimension_dos) ';';
+mult_cte                        : '{' cte (',' cte)* '}';
+dimension_uno                   : ':' tipo '=' mult_cte;
+dimension_dos                   : ':' tipo '=' '{' mult_cte (',' mult_cte)*  '}' ;
+posicion_arreglo                : ID '[' exp ']' ('[' exp ']')?;
+
 /*
  * Lexer Rules
  */
