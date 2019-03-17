@@ -1,16 +1,17 @@
 grammar dist;
-/*
- * Parser Rules
- */
-
+ 
+@header{
+	
+}
+ 
 dist                            : programa EOF;
-programa                        : PROGRAM ID ';' ((vars | vars_arreglo) ';')* funcion* MAIN bloque_local;
+programa                        : PROGRAM ID ';' ((varss| vars_arreglo) ';')* funcion* MAIN bloque_local;
 expresion                       : exp_and ('||' exp_and)*;
 exp_and                         : exp_comp ('&&' exp_comp)*;
 exp_comp                        : exp (('<' | '>' | '!=' | '<=' | '>=' | '==') exp)?;
 exp                             : termino (('+' | '-') termino)*;
 termino                         : factor (('*' | '/') factor)*;
-factor                          : ('(' expresion ')') |
+factor                          : ('(' expresion ')') |                                                                                                   
                                   (('+' | '-')? var_cte);
 var_cte                         : cte | ID | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
 cte                             : CTE_I | CTE_F | CTE_C | CTE_B | NULL;
@@ -18,7 +19,7 @@ lectura                         : READ '(' (ID | posicion_arreglo) ')';
 escritura                       : PRINT '(' (expresion | CTE_STRING) (',' (expresion | CTE_STRING))* ')';
 tipo                            : INT | FLOAT | CHAR | BOOL;
 tipo_funcion                    : tipo | VOID;
-vars                            : VAR ID (',' ID)* ':' tipo;
+varss                           : VAR ID (',' ID)* ':' tipo;
 returnn							            : RETURN expresion;
 
 un_parametro                   : '(' expresion ')';
@@ -44,12 +45,11 @@ posicion_arreglo                : ID '[' exp ']' ('[' exp ']')?;
 estatuto                        : (asignacion | condicion | while_cycle | escritura | lectura | llamada_funcion | llamada_funcion_especial | returnn) ';';
 
 bloque_condicional              : '{' estatuto* '}';
-bloque_local                    : '{' ((vars | vars_arreglo) ';')* estatuto* '}';
+bloque_local                    : '{' ((varss| vars_arreglo) ';')* estatuto* '}';
 asignacion                      : (ID | posicion_arreglo) '=' expresion;
 
 condicion                       : IF '(' expresion ')' bloque_condicional (ELSE bloque_condicional)?;
 while_cycle                     : WHILE '(' expresion ')' bloque_condicional;
-
 
 /*
  * Lexer Rules
