@@ -1,11 +1,12 @@
 grammar dist;
- 
+
 @header{
 from Compiler import Compiler
 c = Compiler()
 VARS = "vars"
+current_variable = ''
 }
- 
+
 dist                            : programa {print(c.functions)} EOF;
 programa                        : PROGRAM ID ';' ((varss| vars_arreglo) ';')* funcion* MAIN bloque_local;
 expresion                       : exp_and ('||' exp_and)*;
@@ -13,7 +14,7 @@ exp_and                         : exp_comp ('&&' exp_comp)*;
 exp_comp                        : exp (('<' | '>' | '!=' | '<=' | '>=' | '==') exp)?;
 exp                             : termino (('+' | '-') termino)*;
 termino                         : factor (('*' | '/') factor)*;
-factor                          : ('(' expresion ')') |                                                                                                   
+factor                          : ('(' expresion ')') |
                                   (('+' | '-')? var_cte);
 var_cte                         : cte | ID | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
 cte                             : CTE_I | CTE_F | CTE_C | CTE_B | NULL;
@@ -24,7 +25,7 @@ tipo_funcion                    : tipo | VOID;
 varss                           : VAR ID {c.push_id($ID.text)} (',' ID {c.push_id($ID.text)})* ':' tipo {c.add_variables($tipo.text)};
 returnn							            : RETURN expresion;
 
-un_parametro                   : '(' expresion ')';
+un_parametro                    : '(' expresion ')';
 dos_parametros                  : '(' expresion ',' expresion ')';
 tres_parametros                 : '(' expresion ',' expresion ',' expresion ')';
 
@@ -37,8 +38,8 @@ llamada_funcion_especial        : (SIZE | VARIANCE | MODE | MEDIAN |
 
 llamada_funcion					        : ID '(' expresion? (',' expresion)* ')';
 
-
-funcion                         : FUN ID {c.switch_context($ID.text)} '(' ((ID ':' tipo) (',' ID ':' tipo)*)? ')' ':' tipo_funcion bloque_local;
+dimension_arreglo               : '[' CTE_I {c.add_dimension_one($CTE_I.text )}']'  ('[' CTE_I {c.add_dimension_two($CTE_I.text )}']')?;
+funcion                         :  FUN ID {c.switch_context($ID.text)} '(' ((ID {c.add_variable($ID.text)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } ) (',' ID{c.add_variable($ID.text)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local;
 
 vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos ));
 mult_cte                        : '{' cte (',' cte)* '}';
@@ -54,13 +55,6 @@ asignacion                      : (ID | posicion_arreglo) '=' expresion;
 
 condicion                       : IF '(' expresion ')' bloque_condicional (ELSE bloque_condicional)?;
 while_cycle                     : WHILE '(' expresion ')' bloque_condicional;
-
-
-vars_arreglo                    : VAR ID '[' CET_I ']' (dimension_uno) | ('[' CET_I ']' dimension_dos) ';';
-mult_cte                        : '{' cte (',' cte)* '}';
-dimension_uno                   : ':' tipo '=' mult_cte;
-dimension_dos                   : ':' tipo '=' '{' mult_cte (',' mult_cte)*  '}' ;
-posicion_arreglo                : ID '[' exp ']' ('[' exp ']')?;
 
 /*
  * Lexer Rules
