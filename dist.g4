@@ -7,8 +7,8 @@ VARS = "vars"
 current_variable = ''
 }
 
-dist                            : programa {print(c.functions)} EOF;
-programa                        : PROGRAM ID ';' ((varss| vars_arreglo) ';')* funcion* MAIN bloque_local;
+dist                            : programa EOF {c.print_tables()};
+programa                        : PROGRAM ID ';' ((varss| vars_arreglo) ';')* funcion* MAIN {c.switch_context('main')} {c.add_function_type('void')}bloque_local;
 expresion                       : exp_and ('||' exp_and)*;
 exp_and                         : exp_comp ('&&' exp_comp)*;
 exp_comp                        : exp (('<' | '>' | '!=' | '<=' | '>=' | '==') exp)?;
@@ -39,12 +39,12 @@ llamada_funcion_especial        : (SIZE | VARIANCE | MODE | MEDIAN |
 llamada_funcion					        : ID '(' expresion? (',' expresion)* ')';
 
 dimension_arreglo               : '[' CTE_I {c.add_dimension_one($CTE_I.text )}']'  ('[' CTE_I {c.add_dimension_two($CTE_I.text )}']')?;
-funcion                         :  FUN ID {c.switch_context($ID.text)} '(' ((ID {c.add_variable($ID.text)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } ) (',' ID{c.add_variable($ID.text)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local;
+funcion                         :  FUN ID {c.switch_context($ID.text)} '(' ((ID {c.add_variable($ID.text, True)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } ) (',' ID{c.add_variable($ID.text, True)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local;
 
-vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos ));
+vars_arreglo                    : VAR ID {c.add_variable($ID.text, False)}(('[' CTE_I {c.add_dimension_one($CTE_I.text)} ']' dimension_uno) | ('[' CTE_I {c.add_dimension_one($CTE_I.text)} ']' '[' CTE_I {c.add_dimension_two($CTE_I.text)}']' dimension_dos ));
 mult_cte                        : '{' cte (',' cte)* '}';
-dimension_uno                   : ':' tipo '=' mult_cte;
-dimension_dos                   : ':' tipo '=' '{' mult_cte (',' mult_cte)*  '}' ;
+dimension_uno                   : ':' tipo {c.add_type($tipo.text)} '=' mult_cte;
+dimension_dos                   : ':' tipo {c.add_type($tipo.text)} '=' '{' mult_cte (',' mult_cte)*  '}' ;
 posicion_arreglo                : ID '[' exp ']' ('[' exp ']')?;
 
 estatuto                        : (asignacion | condicion | while_cycle | escritura | lectura | llamada_funcion | llamada_funcion_especial | returnn) ';';

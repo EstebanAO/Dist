@@ -29,10 +29,11 @@ class Compiler:
             raise NameError('Function ', function_name, ' already exists')
         self.functions[function_name] = {TYPE: "", VARS: {}, PARAMS: []}
 
-    def add_variable(self, name):
+    def add_variable(self, name, is_param):
         self.current_variable = name
         self.functions[self.current_function][VARS][self.current_variable] = ['', 1, 0, False]
-        self.functions[self.current_function][PARAMS].append(name)
+        if (is_param):
+            self.functions[self.current_function][PARAMS].append(name)
 
     def add_dimension_one(self, size):
         self.functions[self.current_function][VARS][self.current_variable][1] = int(size)
@@ -47,6 +48,15 @@ class Compiler:
     def add_function_type(self, function_type):
         self.functions[self.current_function][TYPE] = function_type
 
+    def print_tables(self):
+        for func, value in self.functions.items():
+            print('Funcion: ', func, value[TYPE])
+            for var, data in value[VARS].items():
+                print("   ", var)
+                print("      Tipo: ", data[0])
+                if(data[3]):
+                    print("      Dim 1: ", data[1])
+                    print("      Dim 2: ", data[2])
 
 """
 compiler = Compiler()
