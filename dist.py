@@ -6,7 +6,7 @@ from distParser import distParser
 	
 class distPrintListener(distListener):
     def exitVars_arreglo(self, ctx):
-        print("ARREGLO... ", ctx.ID())
+        print("")
 		
 def main(argv):
 	input = FileStream(argv[1])

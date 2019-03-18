@@ -1,10 +1,12 @@
 grammar dist;
  
 @header{
-	
+from Compiler import Compiler
+c = Compiler()
+VARS = "vars"
 }
  
-dist                            : programa EOF;
+dist                            : programa {print(c.functions)} EOF;
 programa                        : PROGRAM ID ';' ((varss| vars_arreglo) ';')* funcion* MAIN bloque_local;
 expresion                       : exp_and ('||' exp_and)*;
 exp_and                         : exp_comp ('&&' exp_comp)*;
@@ -19,7 +21,7 @@ lectura                         : READ '(' (ID | posicion_arreglo) ')';
 escritura                       : PRINT '(' (expresion | CTE_STRING) (',' (expresion | CTE_STRING))* ')';
 tipo                            : INT | FLOAT | CHAR | BOOL;
 tipo_funcion                    : tipo | VOID;
-varss                           : VAR ID (',' ID)* ':' tipo;
+varss                           : VAR ID {c.push_id($ID.text)} (',' ID {c.push_id($ID.text)})* ':' tipo {c.add_variables($tipo.text)};
 returnn							            : RETURN expresion;
 
 un_parametro                   : '(' expresion ')';
@@ -34,7 +36,9 @@ llamada_funcion_especial        : (SIZE | VARIANCE | MODE | MEDIAN |
                                     PROB_BINOMIAL tres_parametros;
 
 llamada_funcion					        : ID '(' expresion? (',' expresion)* ')';
-funcion                         : FUN ID '(' ((ID ':' tipo) (',' ID ':' tipo)*)? ')' ':' tipo_funcion bloque_local;
+
+
+funcion                         : FUN ID {c.switch_context($ID.text)} '(' ((ID ':' tipo) (',' ID ':' tipo)*)? ')' ':' tipo_funcion bloque_local;
 
 vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos ));
 mult_cte                        : '{' cte (',' cte)* '}';
