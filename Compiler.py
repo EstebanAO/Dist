@@ -3,6 +3,25 @@ from collections import deque
 TYPE = "tipo"
 VARS = "vars"
 PARAMS = 'params'
+INT = 'int'
+FLOAT = 'float'
+CHAR = 'char'
+BOOL = 'bool'
+PLUS = '+'
+MINUS = '-'
+MULT = '*'
+DIV = '/'
+EQU = '=='
+GREATER = '>'
+GREATER_EQ = '>='
+LESS = '<'
+LESS_EQ = '<='
+DIFF = '!='
+AND = '&&'
+OR = '||'
+ASIGN = '='
+ERROR = 'error'
+
 class Compiler:
     def __init__(self):
         self.pending_ids = []
@@ -57,24 +76,3 @@ class Compiler:
                 if(data[3]):
                     print("      Dim 1: ", data[1])
                     print("      Dim 2: ", data[2])
-
-"""
-compiler = Compiler()
-compiler.funciones["global"][VARS]["vargloba14"] = (CHAR, 1, 0, False)
-print(compiler.funciones["global"][VARS]["vargloba14"][3])
-"""
-
-"""
-					"varglobal1": (INT, 1, 0, False),
-					"varglobal2": (FLOAT, 4, 1, True),
-					"vargloba13": (INT, 5, 5, True),
-					"""
-
-"""
-TYPE = "tipo"
-VARS = "vars"
-VOID = "void"
-INT = "int"
-FLOAT = "float"
-CHAR = "char"
-"""
