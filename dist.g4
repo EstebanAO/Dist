@@ -3,21 +3,19 @@ grammar dist;
 @header{
 from Compiler import Compiler
 c = Compiler()
-VARS = "vars"
-current_variable = ''
 }
 
-dist                            : programa EOF {c.print_tables()};
+dist                            : programa EOF {c.print_quad()};
 programa                        : PROGRAM ID ';' ((varss| vars_arreglo) ';')* funcion* MAIN {c.switch_context('main')} {c.add_function_type('void')}bloque_local;
-expresion                       : exp_and ('||' exp_and)*;
-exp_and                         : exp_comp ('&&' exp_comp)*;
-exp_comp                        : exp (('<' | '>' | '!=' | '<=' | '>=' | '==') exp)?;
-exp                             : termino (('+' | '-') termino)*;
-termino                         : factor (('*' | '/') factor)*;
-factor                          : ('(' expresion ')') |
-                                  (('+' | '-')? var_cte);
-var_cte                         : cte | ID | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
-cte                             : CTE_I | CTE_F | CTE_C | CTE_B | NULL;
+expresion                       : exp_and ('||'{c.push_operator('||')} exp_and)*;
+exp_and                         : exp_comp ('&&' {c.push_operator('&&')} exp_comp)*{c.generate_quadruple('||')};
+rel_op                          :('<' | '>' | '!=' | '<=' | '>=' | '==');
+exp_comp                        : exp ( rel_op {c.push_operator($rel_op.text)} exp {c.generate_quadruple('>')})? {c.generate_quadruple('&&')};
+exp                             : termino (('+' {c.push_operator('+')} | '-'{c.push_operator('-')}) termino)*;
+termino                         : factor (('*' {c.push_operator('*')} | '/' {c.push_operator('/')}) factor)* {c.generate_quadruple('+')};
+factor                          : (('(' {c.push_operator('(')} expresion ')'{c.pop_operator()}) | (('+' | '-')? var_cte)) {c.generate_quadruple('*')};
+var_cte                         : cte {c.push_constant_data($cte.text)} | ID {c.push_variable_data($ID.text)} | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
+cte                             : CTE_I {c.current_cte_type = 'int'} | CTE_F {c.current_cte_type = 'float'} | CTE_C {c.current_cte_type = 'char'} | CTE_B {c.current_cte_type = 'null'} | NULL {c.current_cte_type = 'null'};
 lectura                         : READ '(' (ID | posicion_arreglo) ')';
 escritura                       : PRINT '(' (expresion | CTE_STRING) (',' (expresion | CTE_STRING))* ')';
 tipo                            : INT | FLOAT | CHAR | BOOL;
@@ -36,7 +34,7 @@ llamada_funcion_especial        : (SIZE | VARIANCE | MODE | MEDIAN |
                                     VAR_BINOMIAL | PROB_GEOMETRIC) dos_parametros |
                                     PROB_BINOMIAL tres_parametros;
 
-llamada_funcion					        : ID '(' expresion? (',' expresion)* ')';
+llamada_funcion					: ID '(' expresion? (',' expresion)* ')';
 
 dimension_arreglo               : '[' CTE_I {c.add_dimension_one($CTE_I.text )}']'  ('[' CTE_I {c.add_dimension_two($CTE_I.text )}']')?;
 funcion                         :  FUN ID {c.switch_context($ID.text)} '(' ((ID {c.add_variable($ID.text, True)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } ) (',' ID{c.add_variable($ID.text, True)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local;

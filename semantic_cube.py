@@ -270,14 +270,3 @@ def get_semantic_cube():
         }
     }
     return sem_cube
-
-c = get_semantic_cube()
-print(c[INT][CHAR]['='])
-
-print(c[BOOL][FLOAT]['-'])
-
-print(c[FLOAT][INT]['+'])
-
-print(c[INT][FLOAT]['*'])
-
-print(c[CHAR][CHAR]['='])

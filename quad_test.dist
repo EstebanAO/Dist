@@ -1,0 +1,10 @@
+program superCool;
+
+main {
+  var a, c, d, l : int;
+  var b, e : int;
+  var holi : bool;
+  holi = 5.0 * (4 + 3) > 2 ;
+
+  return 0;
+}
