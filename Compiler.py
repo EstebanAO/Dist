@@ -4,6 +4,7 @@ from semantic_cube import get_semantic_cube
 VAR = "var"
 CTE = "cte"
 FUN = "fun"
+ARR = "arr"
 GLOBAL = "global"
 TYPE = "tipo"
 VARS = "vars"
@@ -95,23 +96,24 @@ class Compiler:
 
 
     # Quadruples logic
+    #  arrVar [volor, tipoValor, tipoEstructura, pos1, pos2 ]
     def push_variable_data(self, id):
         if id in self.functions[self.current_function][VARS]:
             type = self.functions[self.current_function][VARS][id][0]
-            self.p_values.append([id, type, VAR])
+            self.p_values.append([id, type, VAR, 1, 0])
         elif id in self.functions[GLOBAL][VARS]:
             type = self.functions[GLOBAL][VARS][id][0]
-            self.p_values.append([id, type, VAR])
+            self.p_values.append([id, type, VAR, 1, 0])
         else:
             raise NameError('Variable: ' + id + ' does not exist in context')
 
     def push_constant_data(self, value):
-        self.p_values.append([value, self.current_cte_type, CTE])
-        print(self.p_values)
+        self.quadruples.append([ASIGN, [value, self.current_cte_type, CTE, 1, 0], None, '_' + str(self.temporal)])
+        self.p_values.append(['_' + str(self.temporal), self.current_cte_type, CTE, 1, 0])
+        self.temporal += 1
 
     def push_operator(self, operator):
         self.p_operators.append(operator)
-        print(self.p_operators)
 
     def pop_operator(self):
         self.p_operators.pop()
@@ -138,9 +140,8 @@ class Compiler:
             new_type = get_semantic_cube()[right_operand[1]][left_operand[1]][operator]
             if new_type == ERROR:
                 raise NameError('Type Mismatch Error: ', right_operand[1] , ' does not match ' , left_operand[1])
-            self.quadruples.append([operator, left_operand, right_operand, str(self.temporal)])
-            # print([operator, left_operand, right_operand, str(self.temporal)])
-            self.p_values.append([str(self.temporal), new_type, VAR])
+            self.quadruples.append([operator, left_operand, right_operand, '_' + str(self.temporal)])
+            self.p_values.append(['_' + str( self.temporal), new_type, VAR, 1, 0])
             self.temporal = self.temporal + 1
 
 
