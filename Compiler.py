@@ -50,7 +50,9 @@ class Compiler:
         self.p_operators = [] # Operators
         self.current_cte_type = ''
         self.p_temporal = []
-
+        self.cont_dim_1 = 0
+        self.cont_dim_2 = 0
+        self.current_array = ''
 
     def push_id(self, id):
         self.pending_ids.append(id)
@@ -73,10 +75,13 @@ class Compiler:
             self.functions[self.current_function][PARAMS].append(name)
 
     def add_dimension_one(self, size):
+        self.cont_dim_1 = int(size)
+        self.cont_dim_2 = 0
         self.functions[self.current_function][VARS][self.current_variable][1] = int(size)
         self.functions[self.current_function][VARS][self.current_variable][3] = True
 
     def add_dimension_two(self, size):
+        self.cont_dim_2 = int(size)
         self.functions[self.current_function][VARS][self.current_variable][2] = int(size)
 
     def add_type(self, type):
@@ -182,6 +187,44 @@ class Compiler:
         if new_type == ERROR:
             raise NameError('Type Mismatch Error: ', expresion_to_assign[1] , ' does not match ' , quad_temp[1][1])
         self.quadruples.append([ASSIGN, expresion_to_assign[0], None, quad_temp[3]])
+
+    def assign_new_single_pos(self):
+        if self.current_variable in self.functions[self.current_function][VARS]:
+            dim1 = self.functions[self.current_function][VARS][self.current_variable][1]
+            dim2 = self.functions[self.current_function][VARS][self.current_variable][2]
+            type = self.functions[self.current_function][VARS][self.current_variable][0]
+        elif self.current_variable in self.functions[GLOBAL][VARS]:
+            dim1 = self.functions[self.current_function][GLOBAL][self.current_variable][1]
+            dim2 = self.functions[self.current_function][GLOBAL][self.current_variable][2]
+            type = self.functions[self.current_function][GLOBAL][self.current_variable][0]
+        else:
+            raise NameError('Variable: ' + self.current_variable + ' does not exist in context')
+
+        pos1 = dim1 - self.cont_dim_1
+        pos2 = dim2 - self.cont_dim_2
+        if dim2 == 0:
+            self.cont_dim_1 -= 1
+        else:
+            self.cont_dim_2 -= 1
+
+        arr_val = [self.current_variable, type, ARR, pos1, pos2]
+        if type != self.quadruples[-1][1][1]:
+            raise NameError('Type Mismatch Error in: ', self.current_variable)
+        self.quadruples.append([ASSIGN, self.quadruples[-1][3], None, arr_val])
+
+    def update_array_pos(self):
+        if self.current_variable in self.functions[self.current_function][VARS]:
+            dim2 = self.functions[self.current_function][VARS][self.current_variable][2]
+        elif self.current_variable in self.functions[GLOBAL][VARS]:
+            dim2 = self.functions[self.current_function][GLOBAL][self.current_variable][2]
+        else:
+            raise NameError('Variable: ' + self.current_variable + ' does not exist in context')
+        if self.cont_dim_2 != 0:
+            raise IndexError('Index out of range in: ', self.current_variable)
+        else:
+            self.cont_dim_1 -= 1
+        self.cont_dim_2 = dim2
+
 
     def push_temporal(self):
         self.p_temporal.append(self.quadruples[-1][3])

@@ -42,13 +42,11 @@ dimension_arreglo               : '[' CTE_I {c.add_dimension_one($CTE_I.text )}'
 funcion                         :  FUN ID {c.switch_context($ID.text)} '(' ((ID {c.add_variable($ID.text, True)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } ) (',' ID{c.add_variable($ID.text, True)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local;
 
 vars_arreglo                    : VAR ID {c.add_variable($ID.text, False)}(('[' CTE_I {c.add_dimension_one($CTE_I.text)} ']' dimension_uno) | ('[' CTE_I {c.add_dimension_one($CTE_I.text)} ']' '[' CTE_I {c.add_dimension_two($CTE_I.text)}']' dimension_dos ));
-mult_cte                        : '{' cte (',' cte)* '}';
-dimension_uno                   : ':' tipo {c.add_type($tipo.text)} '=' mult_cte;
-dimension_dos                   : ':' tipo {c.add_type($tipo.text)} '=' '{' mult_cte (',' mult_cte)*  '}' ;
+mult_cte                        : '{' cte {c.push_constant_data($cte.text)}{c.assign_new_single_pos()} (',' cte{c.push_constant_data($cte.text)} {c.assign_new_single_pos()})* '}';
+dimension_uno                   : ':' tipo {c.add_type($tipo.text)} ('=' mult_cte)?;
+dimension_dos                   : ':' tipo {c.add_type($tipo.text)} ('=' '{' mult_cte {c.update_array_pos()} (',' mult_cte {c.update_array_pos()})* '}' )?;
 
 posicion_arreglo                : ID {id_arr = $ID.text} (('[' exp {c.generate_arr_pos_quadruple(id_arr, 1)}']') | ('[' exp {c.push_temporal()}']' '[' exp {c.generate_arr_pos_quadruple(id_arr, 2)}']'));
-
-
 
 estatuto                        : (asignacion | condicion | while_cycle | escritura | lectura | llamada_funcion | llamada_funcion_especial | returnn) ';';
 
