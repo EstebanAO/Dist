@@ -28,6 +28,8 @@ AND = '&&'
 OR = '||'
 ASSIGN = '='
 ERROR = 'error'
+PRINT = 'print'
+READ = 'read'
 
 class Compiler:
     def __init__(self):
@@ -225,6 +227,20 @@ class Compiler:
             self.cont_dim_1 -= 1
         self.cont_dim_2 = dim2
 
+    def generate_print_quadruple(self):
+        self.quadruples.append([PRINT, None, None, self.quadruples[-1][3]])
+
+    def generate_read_quadruple(self, id):
+        if id == None:
+            if self.quadruples[-1][1][0] in self.functions[self.current_function][VARS] or self.quadruples[-1][1][0] in self.functions[GLOBAL][VARS]:
+                self.quadruples.append([READ, None, None, self.quadruples[-1][3]])
+            else:
+                raise NameError('Variable: ', self.quadruples[-1][1][0], ' does not exist in context')
+        else:
+            if id in self.functions[self.current_function][VARS] or id in self.functions[GLOBAL][VARS]:
+                self.quadruples.append([READ, None, None, id])
+            else:
+                raise NameError('Variable: ', id, ' does not exist in context')
 
     def push_temporal(self):
         self.p_temporal.append(self.quadruples[-1][3])
