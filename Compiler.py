@@ -26,7 +26,7 @@ LESS_EQ = '<='
 DIFF = '!='
 AND = '&&'
 OR = '||'
-ASIGN = '='
+ASSIGN = '='
 ERROR = 'error'
 
 class Compiler:
@@ -49,6 +49,7 @@ class Compiler:
         self.p_values = [] # Variables and constants
         self.p_operators = [] # Operators
         self.current_cte_type = ''
+        self.p_temporal = []
 
 
     def push_id(self, id):
@@ -96,20 +97,20 @@ class Compiler:
 
 
     # Quadruples logic
-    #  arrVar [volor, tipoValor, tipoEstructura, pos1, pos2 ]
+    #  arrVar [valor, tipoValor, tipoEstructura, pos1, pos2 ]
     def push_variable_data(self, id):
         if id in self.functions[self.current_function][VARS]:
             type = self.functions[self.current_function][VARS][id][0]
-            self.p_values.append([id, type, VAR, 1, 0])
+            self.p_values.append([id, type, VAR, None, None])
         elif id in self.functions[GLOBAL][VARS]:
             type = self.functions[GLOBAL][VARS][id][0]
-            self.p_values.append([id, type, VAR, 1, 0])
+            self.p_values.append([id, type, VAR, None, None])
         else:
             raise NameError('Variable: ' + id + ' does not exist in context')
 
     def push_constant_data(self, value):
-        self.quadruples.append([ASIGN, [value, self.current_cte_type, CTE, 1, 0], None, '_' + str(self.temporal)])
-        self.p_values.append(['_' + str(self.temporal), self.current_cte_type, CTE, 1, 0])
+        self.quadruples.append([ASSIGN, [value, self.current_cte_type, CTE, None, None], None, '_' + str(self.temporal)])
+        self.p_values.append(['_' + str(self.temporal), self.current_cte_type, CTE, None, None])
         self.temporal += 1
 
     def push_operator(self, operator):
@@ -118,7 +119,7 @@ class Compiler:
     def pop_operator(self):
         self.p_operators.pop()
 
-    def generate_quadruple(self, hierarchy):
+    def generate_operation_quadruple(self, hierarchy):
         if len(self.p_operators) == 0:
             return
         if hierarchy == '+':
@@ -141,9 +142,49 @@ class Compiler:
             if new_type == ERROR:
                 raise NameError('Type Mismatch Error: ', right_operand[1] , ' does not match ' , left_operand[1])
             self.quadruples.append([operator, left_operand, right_operand, '_' + str(self.temporal)])
-            self.p_values.append(['_' + str( self.temporal), new_type, VAR, 1, 0])
+            self.p_values.append(['_' + str( self.temporal), new_type, VAR, None, None])
             self.temporal = self.temporal + 1
 
+    def generate_arr_pos_quadruple(self, id, dimension):
+        if id in self.functions[self.current_function][VARS]:
+            type = self.functions[self.current_function][VARS][id][0]
+        elif id in self.functions[GLOBAL][VARS]:
+            type = self.functions[GLOBAL][VARS][id][0]
+        else:
+            raise NameError('Variable: ' + id + ' does not exist in context')
+
+        if dimension == 1:
+            arr_value = [id, type, ARR, self.quadruples[-1][3], None]
+        else:
+            first_dimension = self.p_temporal.pop()
+            arr_value = [id, type, ARR, first_dimension, self.quadruples[-1][3]]
+        self.quadruples.append([ASSIGN, arr_value, None, '_' + str(self.temporal)])
+        arr_temp = ['_' + str( self.temporal), arr_value[1], arr_value[2], arr_value[3], arr_value[4]]
+        self.p_values.append(arr_temp)
+        self.temporal = self.temporal + 1
+
+    def get_variable(self, id):
+        if id in self.functions[self.current_function][VARS]:
+            type = self.functions[self.current_function][VARS][id][0]
+            # is_Array = self.functions[self.current_function][VARS][id][3]
+            # if is_array:
+            #     raise TypeError ('')
+            return ["", [id, type, VAR, None, None], "", id]
+        elif id in self.functions[GLOBAL][VARS]:
+            type = self.functions[GLOBAL][VARS][id][0]
+            return ["", [id, type, VAR, None, None], "", id]
+        else:
+            raise NameError('Variable: ' + id + ' does not exist in context')
+
+    def generate_assign_quadruple(self, quad_temp):
+        expresion_to_assign = self.p_values.pop()
+        new_type = get_semantic_cube()[expresion_to_assign[1]][quad_temp[1][1]][ASSIGN]
+        if new_type == ERROR:
+            raise NameError('Type Mismatch Error: ', expresion_to_assign[1] , ' does not match ' , quad_temp[1][1])
+        self.quadruples.append([ASSIGN, expresion_to_assign[0], None, quad_temp[3]])
+
+    def push_temporal(self):
+        self.p_temporal.append(self.quadruples[-1][3])
 
     def print_quad(self):
         for idx, quad in enumerate(self.quadruples):

@@ -3,19 +3,21 @@ grammar dist;
 @header{
 from Compiler import Compiler
 c = Compiler()
+id_arr = ''
+quad_temp = ''
 }
 
 dist                            : programa EOF {c.print_quad()};
 programa                        : PROGRAM ID ';' ((varss| vars_arreglo) ';')* funcion* MAIN {c.switch_context('main')} {c.add_function_type('void')}bloque_local;
 expresion                       : exp_and ('||'{c.push_operator('||')} exp_and)*;
-exp_and                         : exp_comp ('&&' {c.push_operator('&&')} exp_comp)*{c.generate_quadruple('||')};
+exp_and                         : exp_comp ('&&' {c.push_operator('&&')} exp_comp)*{c.generate_operation_quadruple('||')};
 rel_op                          :('<' | '>' | '!=' | '<=' | '>=' | '==');
-exp_comp                        : exp ( rel_op {c.push_operator($rel_op.text)} exp {c.generate_quadruple('>')})? {c.generate_quadruple('&&')};
+exp_comp                        : exp ( rel_op {c.push_operator($rel_op.text)} exp {c.generate_operation_quadruple('>')})? {c.generate_operation_quadruple('&&')};
 exp                             : termino (('+' {c.push_operator('+')} | '-'{c.push_operator('-')}) termino)*;
-termino                         : factor (('*' {c.push_operator('*')} | '/' {c.push_operator('/')}) factor)* {c.generate_quadruple('+')};
-factor                          : (('(' {c.push_operator('(')} expresion ')'{c.pop_operator()}) | (('+' | '-')? var_cte)) {c.generate_quadruple('*')};
+termino                         : factor (('*' {c.push_operator('*')} | '/' {c.push_operator('/')}) factor)* {c.generate_operation_quadruple('+')};
+factor                          : (('(' {c.push_operator('(')} expresion ')'{c.pop_operator()}) | (('+' | '-')? var_cte)) {c.generate_operation_quadruple('*')};
 var_cte                         : cte {c.push_constant_data($cte.text)} | ID {c.push_variable_data($ID.text)} | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
-cte                             : CTE_I {c.current_cte_type = 'int'} | CTE_F {c.current_cte_type = 'float'} | CTE_C {c.current_cte_type = 'char'} | CTE_B {c.current_cte_type = 'null'} | NULL {c.current_cte_type = 'null'};
+cte                             : (CTE_I {c.current_cte_type = 'int'} | CTE_F {c.current_cte_type = 'float'} | CTE_C {c.current_cte_type = 'char'} | CTE_B {c.current_cte_type = 'null'} | NULL {c.current_cte_type = 'null'});
 lectura                         : READ '(' (ID | posicion_arreglo) ')';
 escritura                       : PRINT '(' (expresion | CTE_STRING) (',' (expresion | CTE_STRING))* ')';
 tipo                            : INT | FLOAT | CHAR | BOOL;
@@ -43,13 +45,16 @@ vars_arreglo                    : VAR ID {c.add_variable($ID.text, False)}(('[' 
 mult_cte                        : '{' cte (',' cte)* '}';
 dimension_uno                   : ':' tipo {c.add_type($tipo.text)} '=' mult_cte;
 dimension_dos                   : ':' tipo {c.add_type($tipo.text)} '=' '{' mult_cte (',' mult_cte)*  '}' ;
-posicion_arreglo                : ID '[' exp ']' ('[' exp ']')?;
+
+posicion_arreglo                : ID {id_arr = $ID.text} (('[' exp {c.generate_arr_pos_quadruple(id_arr, 1)}']') | ('[' exp {c.push_temporal()}']' '[' exp {c.generate_arr_pos_quadruple(id_arr, 2)}']'));
+
+
 
 estatuto                        : (asignacion | condicion | while_cycle | escritura | lectura | llamada_funcion | llamada_funcion_especial | returnn) ';';
 
 bloque_condicional              : '{' estatuto* '}';
 bloque_local                    : '{' ((varss| vars_arreglo) ';')* estatuto* '}';
-asignacion                      : (ID | posicion_arreglo) '=' expresion;
+asignacion                      : (ID {quad_temp = c.get_variable($ID.text)} | posicion_arreglo {quad_temp = c.quadruples[-1]}) '=' expresion {c.generate_assign_quadruple(quad_temp)};
 
 condicion                       : IF '(' expresion ')' bloque_condicional (ELSE bloque_condicional)?;
 while_cycle                     : WHILE '(' expresion ')' bloque_condicional;
