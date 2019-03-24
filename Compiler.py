@@ -30,7 +30,7 @@ ASSIGN = '='
 ERROR = 'error'
 PRINT = 'print'
 READ = 'read'
-
+RETURN = 'return'
 class Compiler:
     def __init__(self):
         # Functions and variables tables
@@ -244,6 +244,9 @@ class Compiler:
 
     def push_temporal(self):
         self.p_temporal.append(self.quadruples[-1][3])
+
+    def generate_return_quadruple(self):
+        self.quadruples.append([RETURN, None, None, self.quadruples[-1][3]])
 
     def print_quad(self):
         for idx, quad in enumerate(self.quadruples):

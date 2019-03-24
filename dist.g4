@@ -23,7 +23,7 @@ escritura                       : PRINT '(' (expresion | CTE_STRING{c.current_ct
 tipo                            : INT | FLOAT | CHAR | BOOL;
 tipo_funcion                    : tipo | VOID;
 varss                           : VAR ID {c.push_id($ID.text)} (',' ID {c.push_id($ID.text)})* ':' tipo {c.add_variables($tipo.text)};
-returnn							            : RETURN expresion;
+returnn							: RETURN expresion {c.generate_return_quadruple()};
 
 un_parametro                    : '(' expresion ')';
 dos_parametros                  : '(' expresion ',' expresion ')';

@@ -6,4 +6,6 @@ main {
   var holi[2][45] : int;
   read(holi[5][3);
 
+  return (4 + 6);
+
 }
