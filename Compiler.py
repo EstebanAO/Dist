@@ -301,7 +301,7 @@ class Compiler:
         self.quadruples.append([RETURN, None, None, self.p_values.pop()])
 
     def generate_go_to_f(self):
-        self.p_jumps.append(len(self.quadruples))
+        self.add_breadcrumb()
         condition = self.p_values.pop()
         if self.get_direction_type(condition) != BOOL:
             raise TypeError('If statements must evaluate boolean values')
@@ -314,8 +314,17 @@ class Compiler:
     def generate_else_go_to(self):
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index][3] = len(self.quadruples) + 1
-        self.p_jumps.append(len(self.quadruples))
+        self.add_breadcrumb()
         self.quadruples.append([GO_TO, None, None, None])
+
+    def add_breadcrumb(self):
+        self.p_jumps.append(len(self.quadruples))
+
+    def end_of_while(self):
+        quad_index = self.p_jumps.pop()
+        self.quadruples[quad_index][3] = len(self.quadruples) + 1
+        quad_index = self.p_jumps.pop()
+        self.quadruples.append([GO_TO, None, None, quad_index])
 
 
     def print_quad(self):

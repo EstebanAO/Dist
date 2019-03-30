@@ -55,7 +55,7 @@ bloque_local                    : '{' ((varss| vars_arreglo) ';')* estatuto* '}'
 asignacion                      : (ID {quad_assign = c.get_variable($ID.text)} | posicion_arreglo ) '=' expresion {c.generate_assign_quadruple(quad_assign)};
 
 condicion                       : IF '(' expresion ')' {c.generate_go_to_f()} bloque_condicional (ELSE {c.generate_else_go_to()} bloque_condicional)? {c.complete_go_to_f()};
-while_cycle                     : WHILE '(' expresion ')' bloque_condicional;
+while_cycle                     : WHILE {c.add_breadcrumb()}'(' expresion ')' {c.generate_go_to_f()} bloque_condicional {c.end_of_while()};
 
 /*
  * Lexer Rules
