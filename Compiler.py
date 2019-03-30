@@ -31,8 +31,39 @@ ERROR = 'error'
 PRINT = 'print'
 READ = 'read'
 RETURN = 'return'
+LIMIT_G_CHAR = 0
+LIMIT_G_INT = 40000
+LIMIT_G_BOOL = 80000
+LIMIT_G_FLOAT = 120000
+LIMIT_L_CHAR = 160000
+LIMIT_L_INT = 200000
+LIMIT_L_BOOL = 240000
+LIMIT_L_FLOAT = 280000
+LIMIT_C_CHAR = 320000
+LIMIT_C_INT = 360000
+LIMIT_C_BOOL = 400000
+LIMIT_C_FLOAT = 440000
+LIMIT_C_STRING = 480000
+
+
 class Compiler:
     def __init__(self):
+        #Counters
+        self.g_char = LIMIT_G_CHAR
+        self.g_int = LIMIT_G_INT
+        self.g_bool = LIMIT_G_BOOL
+        self.g_float = LIMIT_G_FLOAT
+        self.l_char = LIMIT_L_CHAR
+        self.l_int = LIMIT_L_INT
+        self.l_bool = LIMIT_L_BOOL
+        self.l_float = LIMIT_L_FLOAT
+        self.c_char = LIMIT_C_CHAR
+        self.c_int = LIMIT_C_INT
+        self.c_bool = LIMIT_C_BOOL
+        self.c_float = LIMIT_C_FLOAT
+        self.c_string = LIMIT_C_STRING
+
+
         # Functions and variables tables
         self.pending_ids = []
         self.current_function = GLOBAL
@@ -46,45 +77,61 @@ class Compiler:
         }
 
         # Quadruple
+        self.cte_values = {}
         self.temporal = 0
         self.quadruples = []
         self.p_values = [] # Variables and constants
         self.p_operators = [] # Operators
         self.current_cte_type = ''
         self.p_temporal = []
-        self.cont_dim_1 = 0
-        self.cont_dim_2 = 0
-        self.current_array = ''
 
     def push_id(self, id):
         self.pending_ids.append(id)
 
+    def get_variable_direction(self, type):
+        if type == INT:
+            if self.current_function == GLOBAL:
+                self.g_int += 1
+                return self.g_int
+            else:
+                self.l_int += 1
+                return self.l_int
+        elif type == CHAR:
+            if self.current_function == GLOBAL:
+                self.g_char += 1
+                return self.g_char
+            else:
+                self.l_char += 1
+                return self.l_char
+        elif type == BOOL:
+            if self.current_function == GLOBAL:
+                self.g_bool += 1
+                return self.g_bool
+            else:
+                self.l_bool += 1
+                return self.l_bool
+        elif type == FLOAT:
+            if self.current_function == GLOBAL:
+                self.g_float += 1
+                return self.g_float
+            else:
+                self.l_float += 1
+                return self.l_float
+
     def add_variables(self, type):
         while (len(self.pending_ids) > 0):
             name = self.pending_ids.pop()
-            self.functions[self.current_function][VARS][name] = [type, 1, 0, False]
+            self.functions[self.current_function][VARS][name] = [type, 1, 0, False, self.get_variable_direction(type)]
 
     def switch_context(self, function_name):
+        self.l_char = LIMIT_L_CHAR
+        self.l_int = LIMIT_L_INT
+        self.l_bool = LIMIT_L_BOOL
+        self.l_float = LIMIT_L_FLOAT
         self.current_function = function_name
         if function_name in self.functions:
             raise NameError('Function ', function_name, ' already exists')
         self.functions[function_name] = {TYPE: "", VARS: {}, PARAMS: []}
-
-    def add_variable(self, name, is_param):
-        self.current_variable = name
-        self.functions[self.current_function][VARS][self.current_variable] = ['', 1, 0, False]
-        if (is_param):
-            self.functions[self.current_function][PARAMS].append(name)
-
-    def add_dimension_one(self, size):
-        self.cont_dim_1 = int(size)
-        self.cont_dim_2 = 0
-        self.functions[self.current_function][VARS][self.current_variable][1] = int(size)
-        self.functions[self.current_function][VARS][self.current_variable][3] = True
-
-    def add_dimension_two(self, size):
-        self.cont_dim_2 = int(size)
-        self.functions[self.current_function][VARS][self.current_variable][2] = int(size)
 
     def add_type(self, type):
         self.functions[self.current_function][VARS][self.current_variable][0] = type
@@ -101,24 +148,38 @@ class Compiler:
                 if(data[3]):
                     print("      Dim 1: ", data[1])
                     print("      Dim 2: ", data[2])
+                print("      Dirección: ", data[4])
 
 
     # Quadruples logic
     #  arrVar [valor, tipoValor, tipoEstructura, pos1, pos2 ]
     def push_variable_data(self, id):
         if id in self.functions[self.current_function][VARS]:
-            type = self.functions[self.current_function][VARS][id][0]
-            self.p_values.append([id, type, VAR, None, None])
+            variable = self.functions[self.current_function][VARS][id]
+            self.p_values.append(variable[4])
         elif id in self.functions[GLOBAL][VARS]:
-            type = self.functions[GLOBAL][VARS][id][0]
-            self.p_values.append([id, type, VAR, None, None])
+            variable = self.functions[GLOBAL][VARS][id]
+            self.p_values.append(variable[4])
         else:
             raise NameError('Variable: ' + id + ' does not exist in context')
 
     def push_constant_data(self, value):
-        self.quadruples.append([ASSIGN, [value, self.current_cte_type, CTE, None, None], None, '_' + str(self.temporal)])
-        self.p_values.append(['_' + str(self.temporal), self.current_cte_type, CTE, None, None])
-        self.temporal += 1
+        if self.current_cte_type == INT:
+            self.c_int += 1
+            self.p_values.append(self.c_int)
+            self.cte_values[self.c_int] = value
+        elif self.current_cte_type == CHAR:
+            self.c_char += 1
+            self.p_values.append(self.c_char)
+            self.cte_values[self.c_char] = value
+        elif self.current_cte_type == FLOAT:
+            self.c_float += 1
+            self.p_values.append(self.c_float)
+            self.cte_values[self.c_float] = value
+        elif self.current_cte_type == BOOL:
+            self.c_bool += 1
+            self.p_values.append(self.c_bool)
+            self.cte_values[self.c_bool] = value
 
     def push_operator(self, operator):
         self.p_operators.append(operator)
@@ -126,109 +187,82 @@ class Compiler:
     def pop_operator(self):
         self.p_operators.pop()
 
+    def get_direction_type(self, direction):
+        if direction < LIMIT_G_INT:
+            return CHAR
+        elif direction < LIMIT_G_BOOL:
+            return INT
+        elif direction < LIMIT_G_FLOAT:
+            return BOOL
+        elif direction < LIMIT_L_CHAR:
+            return FLOAT
+        elif direction < LIMIT_L_INT:
+            return CHAR
+        elif direction < LIMIT_L_BOOL:
+            return INT
+        elif direction < LIMIT_L_FLOAT:
+            return BOOL
+        elif direction < LIMIT_C_CHAR:
+            return FLOAT
+        elif direction < LIMIT_C_INT:
+            return CHAR
+        elif direction < LIMIT_C_BOOL:
+            return INT
+        elif direction < LIMIT_C_FLOAT:
+            return BOOL
+        else:
+            return FLOAT
+
     def generate_operation_quadruple(self, hierarchy):
         if len(self.p_operators) == 0:
             return
-        if hierarchy == '+':
+        if hierarchy == PLUS:
             array_symbol = ['+', '-']
-        elif hierarchy == '*':
+        elif hierarchy == MULT:
             array_symbol = ['*', '/']
-        elif hierarchy == '>':
+        elif hierarchy == GREATER:
             array_symbol = ['>', '>=', '<', '<=', '==', '!=']
-        elif hierarchy == '&&':
+        elif hierarchy == AND:
             array_symbol = ['&&']
-        elif hierarchy == '||':
+        elif hierarchy == OR:
             array_symbol = ['||']
 
-        top = self.p_operators[len(self.p_operators) - 1]
+        top = self.p_operators[ -1 ]
         if top in array_symbol:
             right_operand = self.p_values.pop()
             left_operand = self.p_values.pop()
             operator = self.p_operators.pop()
-            new_type = get_semantic_cube()[right_operand[1]][left_operand[1]][operator]
+            type_right_operand = self.get_direction_type(right_operand)
+            type_left_operand = self.get_direction_type(left_operand)
+            new_type = get_semantic_cube()[type_right_operand][type_left_operand][operator]
             if new_type == ERROR:
                 raise NameError('Type Mismatch Error: ', right_operand[1] , ' does not match ' , left_operand[1])
-            self.quadruples.append([operator, left_operand, right_operand, '_' + str(self.temporal)])
-            self.p_values.append(['_' + str( self.temporal), new_type, VAR, None, None])
-            self.temporal = self.temporal + 1
-
-    def generate_arr_pos_quadruple(self, id, dimension):
-        if id in self.functions[self.current_function][VARS]:
-            type = self.functions[self.current_function][VARS][id][0]
-        elif id in self.functions[GLOBAL][VARS]:
-            type = self.functions[GLOBAL][VARS][id][0]
-        else:
-            raise NameError('Variable: ' + id + ' does not exist in context')
-
-        if dimension == 1:
-            arr_value = [id, type, ARR, self.quadruples[-1][3], None]
-        else:
-            first_dimension = self.p_temporal.pop()
-            arr_value = [id, type, ARR, first_dimension, self.quadruples[-1][3]]
-        self.quadruples.append([ASSIGN, arr_value, None, '_' + str(self.temporal)])
-        arr_temp = ['_' + str( self.temporal), arr_value[1], arr_value[2], arr_value[3], arr_value[4]]
-        self.p_values.append(arr_temp)
-        self.temporal = self.temporal + 1
+            new_direction = self.get_variable_direction(new_type)
+            self.quadruples.append([operator, left_operand, right_operand, new_direction])
+            self.p_values.append(new_direction)
 
     def get_variable(self, id):
         if id in self.functions[self.current_function][VARS]:
-            type = self.functions[self.current_function][VARS][id][0]
-            # is_Array = self.functions[self.current_function][VARS][id][3]
-            # if is_array:
-            #     raise TypeError ('')
-            return ["", [id, type, VAR, None, None], "", id]
+            variable = self.functions[self.current_function][VARS][id]
+            return variable[4]
         elif id in self.functions[GLOBAL][VARS]:
-            type = self.functions[GLOBAL][VARS][id][0]
-            return ["", [id, type, VAR, None, None], "", id]
+            variable = self.functions[GLOBAL][VARS][id]
+            return variable[4]
         else:
             raise NameError('Variable: ' + id + ' does not exist in context')
 
-    def generate_assign_quadruple(self, quad_temp):
-        expresion_to_assign = self.p_values.pop()
-        new_type = get_semantic_cube()[expresion_to_assign[1]][quad_temp[1][1]][ASSIGN]
+    def generate_assign_quadruple(self, to_assign_direction):
+        assign_value_direction = self.p_values.pop()
+        to_assign_type = self.get_direction_type(to_assign_direction)
+        assign_value_type = self.get_direction_type(assign_value_direction)
+        new_type = get_semantic_cube()[to_assign_type][assign_value_type]
         if new_type == ERROR:
-            raise NameError('Type Mismatch Error: ', expresion_to_assign[1] , ' does not match ' , quad_temp[1][1])
-        self.quadruples.append([ASSIGN, expresion_to_assign[0], None, quad_temp[3]])
+            raise NameError('Type Mismatch Error: ', to_assign_type , ' does not match ', assign_value_type)
+        self.quadruples.append([ASSIGN, assign_value_direction, None, to_assign_direction])
 
-    def assign_new_single_pos(self):
-        if self.current_variable in self.functions[self.current_function][VARS]:
-            dim1 = self.functions[self.current_function][VARS][self.current_variable][1]
-            dim2 = self.functions[self.current_function][VARS][self.current_variable][2]
-            type = self.functions[self.current_function][VARS][self.current_variable][0]
-        elif self.current_variable in self.functions[GLOBAL][VARS]:
-            dim1 = self.functions[self.current_function][GLOBAL][self.current_variable][1]
-            dim2 = self.functions[self.current_function][GLOBAL][self.current_variable][2]
-            type = self.functions[self.current_function][GLOBAL][self.current_variable][0]
-        else:
-            raise NameError('Variable: ' + self.current_variable + ' does not exist in context')
-
-        pos1 = dim1 - self.cont_dim_1
-        pos2 = dim2 - self.cont_dim_2
-        if dim2 == 0:
-            self.cont_dim_1 -= 1
-        else:
-            self.cont_dim_2 -= 1
-
-        arr_val = [self.current_variable, type, ARR, pos1, pos2]
-        if type != self.quadruples[-1][1][1]:
-            raise NameError('Type Mismatch Error in: ', self.current_variable)
-        self.quadruples.append([ASSIGN, self.quadruples[-1][3], None, arr_val])
-
-    def update_array_pos(self):
-        if self.current_variable in self.functions[self.current_function][VARS]:
-            dim2 = self.functions[self.current_function][VARS][self.current_variable][2]
-        elif self.current_variable in self.functions[GLOBAL][VARS]:
-            dim2 = self.functions[self.current_function][GLOBAL][self.current_variable][2]
-        else:
-            raise NameError('Variable: ' + self.current_variable + ' does not exist in context')
-        if self.cont_dim_2 != 0:
-            raise IndexError('Index out of range in: ', self.current_variable)
-        else:
-            self.cont_dim_1 -= 1
-        self.cont_dim_2 = dim2
 
     def generate_print_quadruple(self):
-        self.quadruples.append([PRINT, None, None, self.quadruples[-1][3]])
+        self.quadruples.append([PRINT, None, None, self.p_values.pop()])
 
     def generate_read_quadruple(self, id):
         if id == None:
@@ -242,13 +276,22 @@ class Compiler:
             else:
                 raise NameError('Variable: ', id, ' does not exist in context')
 
-    def push_temporal(self):
-        self.p_temporal.append(self.quadruples[-1][3])
+    def generate_read_quadruple(self, id):
+        if id == None:
+            if id in self.functions[self.current_function][VARS]:
+                variable = self.functions[self.current_function][VARS][id]
+            elif id in self.functions[GLOBAL][VARS]:
+                variable = self.functions[GLOBAL][VARS][id]
+            else:
+                raise NameError('Variable: ' + id + ' does not exist in context')
+            self.quadruples.append([READ, None, None, variable[4]])
 
     def generate_return_quadruple(self):
-        self.quadruples.append([RETURN, None, None, self.quadruples[-1][3]])
+        self.quadruples.append([RETURN, None, None, self.p_values.pop()])
 
     def print_quad(self):
+        self.print_tables()
+        print(self.cte_values)
         for idx, quad in enumerate(self.quadruples):
             print(str(idx) + " : " , quad)
 

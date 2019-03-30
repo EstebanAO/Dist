@@ -1,11 +1,12 @@
 program superCool;
 
 main {
-  var a, c, d, l : int;
-  var b, e : int;
-  var holi[2][45] : int;
-  read(holi[5][3);
+  var a, c, l : int;
+  var cChar : char;
+  var fFloat : float;
+  var bBool : bool;
 
-  return (4 + 6);
+  fFloat = (4.0 + 6 + l / (5*8 -3));
+
 
 }

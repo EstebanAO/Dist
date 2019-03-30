@@ -4,7 +4,7 @@ grammar dist;
 from Compiler import Compiler
 c = Compiler()
 id_arr = ''
-quad_temp = ''
+quad_assign = ''
 }
 
 dist                            : programa EOF {c.print_quad()};
@@ -18,12 +18,12 @@ termino                         : factor (('*' {c.push_operator('*')} | '/' {c.p
 factor                          : (('(' {c.push_operator('(')} expresion ')'{c.pop_operator()}) | (('+' | '-')? var_cte)) {c.generate_operation_quadruple('*')};
 var_cte                         : cte {c.push_constant_data($cte.text)} | ID {c.push_variable_data($ID.text)} | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
 cte                             : (CTE_I {c.current_cte_type = 'int'} | CTE_F {c.current_cte_type = 'float'} | CTE_C {c.current_cte_type = 'char'} | CTE_B {c.current_cte_type = 'null'} | NULL {c.current_cte_type = 'null'});
-lectura                         : READ '(' (ID {c.generate_read_quadruple($ID.text)} | posicion_arreglo {c.generate_read_quadruple(None)}) ')';
+lectura                         : READ '(' ID | posicion_arreglo ')';
 escritura                       : PRINT '(' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}) {c.generate_print_quadruple()} (',' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}){c.generate_print_quadruple()})* ')';
 tipo                            : INT | FLOAT | CHAR | BOOL;
 tipo_funcion                    : tipo | VOID;
 varss                           : VAR ID {c.push_id($ID.text)} (',' ID {c.push_id($ID.text)})* ':' tipo {c.add_variables($tipo.text)};
-returnn							: RETURN expresion {c.generate_return_quadruple()};
+returnn							            : RETURN expresion {c.generate_return_quadruple()};
 
 un_parametro                    : '(' expresion ')';
 dos_parametros                  : '(' expresion ',' expresion ')';
@@ -36,23 +36,23 @@ llamada_funcion_especial        : (SIZE | VARIANCE | MODE | MEDIAN |
                                     VAR_BINOMIAL | PROB_GEOMETRIC) dos_parametros |
                                     PROB_BINOMIAL tres_parametros;
 
-llamada_funcion					: ID '(' expresion? (',' expresion)* ')';
+llamada_funcion				         	: ID '(' expresion? (',' expresion)* ')';
 
-dimension_arreglo               : '[' CTE_I {c.add_dimension_one($CTE_I.text )}']'  ('[' CTE_I {c.add_dimension_two($CTE_I.text )}']')?;
-funcion                         :  FUN ID {c.switch_context($ID.text)} '(' ((ID {c.add_variable($ID.text, True)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } ) (',' ID{c.add_variable($ID.text, True)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local;
+dimension_arreglo               : '[' CTE_I ']'  ('[' CTE_I ']')?;
+funcion                         :  FUN ID {c.switch_context($ID.text)} '(' ((ID dimension_arreglo? ':' tipo {c.add_type($tipo.text) } ) (',' ID dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local;
 
-vars_arreglo                    : VAR ID {c.add_variable($ID.text, False)}(('[' CTE_I {c.add_dimension_one($CTE_I.text)} ']' dimension_uno) | ('[' CTE_I {c.add_dimension_one($CTE_I.text)} ']' '[' CTE_I {c.add_dimension_two($CTE_I.text)}']' dimension_dos ));
-mult_cte                        : '{' cte {c.push_constant_data($cte.text)}{c.assign_new_single_pos()} (',' cte{c.push_constant_data($cte.text)} {c.assign_new_single_pos()})* '}';
-dimension_uno                   : ':' tipo {c.add_type($tipo.text)} ('=' mult_cte)?;
-dimension_dos                   : ':' tipo {c.add_type($tipo.text)} ('=' '{' mult_cte {c.update_array_pos()} (',' mult_cte {c.update_array_pos()})* '}' )?;
+vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos ));
+mult_cte                        : '{' cte {c.push_constant_data($cte.text)} (',' cte{c.push_constant_data($cte.text)} )* '}';
+dimension_uno                   : ':' tipo ('=' mult_cte)?;
+dimension_dos                   : ':' tipo ('=' '{' mult_cte (',' mult_cte )* '}' )?;
 
-posicion_arreglo                : ID {id_arr = $ID.text} (('[' exp {c.generate_arr_pos_quadruple(id_arr, 1)}']') | ('[' exp {c.push_temporal()}']' '[' exp {c.generate_arr_pos_quadruple(id_arr, 2)}']'));
+posicion_arreglo                : ID {id_arr = $ID.text} (('[' exp ']') | ('[' exp ']' '[' exp ']'));
 
 estatuto                        : (asignacion | condicion | while_cycle | escritura | lectura | llamada_funcion | llamada_funcion_especial | returnn) ';';
 
 bloque_condicional              : '{' estatuto* '}';
 bloque_local                    : '{' ((varss| vars_arreglo) ';')* estatuto* '}';
-asignacion                      : (ID {quad_temp = c.get_variable($ID.text)} | posicion_arreglo {quad_temp = c.quadruples[-1]}) '=' expresion {c.generate_assign_quadruple(quad_temp)};
+asignacion                      : (ID {quad_assign = c.get_variable($ID.text)} | posicion_arreglo ) '=' expresion {c.generate_assign_quadruple(quad_assign)};
 
 condicion                       : IF '(' expresion ')' bloque_condicional (ELSE bloque_condicional)?;
 while_cycle                     : WHILE '(' expresion ')' bloque_condicional;
