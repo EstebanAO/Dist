@@ -1,23 +1,17 @@
 program superCool;
 
-main {
-  var a, c, b, l : int;
-  var cChar : char;
+fun cero(paramUno: char, paramDos:int) : char {
 
-  while (1 < 2){
-    a = 5 * 2;
-    while ( 3 < 4){
-      a = 19 * 27;
-      if ( 1 < 3) {
-        b = 3 + 2;
-      } else {
-        while (6 < 7){
-          if (8 < 9){
-            print("Epale");
-          }
-        }
-      }
-    }
-  }
-  a = 5;
+  return 'c';
+}
+
+fun uno(paramUno: char, paramDos:int) : char {
+
+  return paramUno;
+}
+
+main {
+  var x, t : char;
+  var i : int;
+  x = uno(x, i);
 }

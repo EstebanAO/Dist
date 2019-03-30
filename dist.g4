@@ -5,6 +5,7 @@ from Compiler import Compiler
 c = Compiler()
 id_arr = ''
 quad_assign = ''
+function_call = ''
 }
 
 dist                            : programa EOF {c.print_quad()};
@@ -36,10 +37,10 @@ llamada_funcion_especial        : (SIZE | VARIANCE | MODE | MEDIAN |
                                     VAR_BINOMIAL | PROB_GEOMETRIC) dos_parametros |
                                     PROB_BINOMIAL tres_parametros;
 
-llamada_funcion				         	: ID '(' expresion? (',' expresion)* ')';
+llamada_funcion				         	: ID {function_call = $ID.text} {c.generate_era_quadruple()} '(' (expresion {c.assign_param_direction(function_call)} (',' expresion {c.assign_param_direction(function_call)})*)? ')'{c.generate_go_sub_quadruple(function_call)};
 
 dimension_arreglo               : '[' CTE_I ']'  ('[' CTE_I ']')?;
-funcion                         :  FUN ID {c.switch_context($ID.text)} '(' ((ID dimension_arreglo? ':' tipo {c.add_type($tipo.text) } ) (',' ID dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local;
+funcion                         :  FUN ID {c.switch_context($ID.text)} '(' (ID {c.add_param($ID.text)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) }  (',' ID {c.add_param($ID.text)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local {c.generate_end_proc()};
 
 vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos ));
 mult_cte                        : '{' cte {c.push_constant_data($cte.text)} (',' cte{c.push_constant_data($cte.text)} )* '}';
