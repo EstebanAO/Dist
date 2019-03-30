@@ -14,6 +14,7 @@ INT = 'int'
 FLOAT = 'float'
 CHAR = 'char'
 BOOL = 'bool'
+STRING = 'str'
 PLUS = '+'
 MINUS = '-'
 MULT = '*'
@@ -31,6 +32,9 @@ ERROR = 'error'
 PRINT = 'print'
 READ = 'read'
 RETURN = 'return'
+GO_TO_F = 'go_to_f'
+GO_TO = 'go_to'
+
 LIMIT_G_CHAR = 0
 LIMIT_G_INT = 40000
 LIMIT_G_BOOL = 80000
@@ -84,6 +88,7 @@ class Compiler:
         self.p_operators = [] # Operators
         self.current_cte_type = ''
         self.p_temporal = []
+        self.p_jumps = []
 
     def push_id(self, id):
         self.pending_ids.append(id)
@@ -161,7 +166,7 @@ class Compiler:
             variable = self.functions[GLOBAL][VARS][id]
             self.p_values.append(variable[4])
         else:
-            raise NameError('Variable: ' + id + ' does not exist in context')
+            raise NameError('Variable: ', id, ' does not exist in context')
 
     def push_constant_data(self, value):
         if self.current_cte_type == INT:
@@ -180,6 +185,10 @@ class Compiler:
             self.c_bool += 1
             self.p_values.append(self.c_bool)
             self.cte_values[self.c_bool] = value
+        elif self.current_cte_type == STRING:
+            self.c_string += 1
+            self.p_values.append(self.c_string)
+            self.cte_values[self.c_string] = value
 
     def push_operator(self, operator):
         self.p_operators.append(operator)
@@ -210,8 +219,10 @@ class Compiler:
             return INT
         elif direction < LIMIT_C_FLOAT:
             return BOOL
-        else:
+        elif direction < LIMIT_C_STRING:
             return FLOAT
+        else:
+            return STRING
 
     def generate_operation_quadruple(self, hierarchy):
         if len(self.p_operators) == 0:
@@ -249,7 +260,7 @@ class Compiler:
             variable = self.functions[GLOBAL][VARS][id]
             return variable[4]
         else:
-            raise NameError('Variable: ' + id + ' does not exist in context')
+            raise NameError('Variable: ', id, ' does not exist in context')
 
     def generate_assign_quadruple(self, to_assign_direction):
         assign_value_direction = self.p_values.pop()
@@ -283,11 +294,29 @@ class Compiler:
             elif id in self.functions[GLOBAL][VARS]:
                 variable = self.functions[GLOBAL][VARS][id]
             else:
-                raise NameError('Variable: ' + id + ' does not exist in context')
+                raise NameError('Variable: ', id, ' does not exist in context')
             self.quadruples.append([READ, None, None, variable[4]])
 
     def generate_return_quadruple(self):
         self.quadruples.append([RETURN, None, None, self.p_values.pop()])
+
+    def generate_go_to_f(self):
+        self.p_jumps.append(len(self.quadruples))
+        condition = self.p_values.pop()
+        if self.get_direction_type(condition) != BOOL:
+            raise TypeError('If statements must evaluate boolean values')
+        self.quadruples.append([GO_TO_F, condition, None, None])
+
+    def complete_go_to_f(self):
+        quad_index = self.p_jumps.pop()
+        self.quadruples[quad_index][3] = len(self.quadruples)
+
+    def generate_else_go_to(self):
+        quad_index = self.p_jumps.pop()
+        self.quadruples[quad_index][3] = len(self.quadruples) + 1
+        self.p_jumps.append(len(self.quadruples))
+        self.quadruples.append([GO_TO, None, None, None])
+
 
     def print_quad(self):
         self.print_tables()

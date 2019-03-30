@@ -1,12 +1,16 @@
 program superCool;
 
 main {
-  var a, c, l : int;
+  var a, c,b, l : int;
   var cChar : char;
-  var fFloat : float;
-  var bBool : bool;
 
-  fFloat = (4.0 + 6 + l / (5*8 -3));
-
-
+  if ('f' == 'f'){
+    if(a == b){
+      l = 25;
+    }
+  } else {
+    b = a;
+    print("Epale X 2");
+  }
+  l = 68;
 }
