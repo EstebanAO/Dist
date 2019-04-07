@@ -1,17 +1,25 @@
 program superCool;
 
+var i, t : int;
+
+fun uno(paramUno: char, paramDos:int) : float {
+  var flo : int;
+  paramDos = 3;
+  uno(paramUno, flo);
+  return 1.1;
+}
+
 fun cero(paramUno: char, paramDos:int) : char {
 
   return 'c';
 }
 
-fun uno(paramUno: char, paramDos:int) : char {
 
-  return paramUno;
-}
 
 main {
   var x, t : char;
   var i : int;
-  x = uno(x, i);
+  i = i +5;
+  uno(x, i);
+  i = i + 5;
 }

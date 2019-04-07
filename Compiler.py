@@ -359,11 +359,12 @@ class Compiler:
 
     def generate_go_sub_quadruple(self, name):
         start_direction = self.functions[name][START]
-        direction_type = self.get_direction_type(self.p_values[-1])
+        direction_type = self.functions[name][TYPE]
         direction_temp = self.get_variable_direction(direction_type)
-        self.p_values.pop()
         self.p_values.append(direction_temp)
         self.quadruples.append([GO_SUB, direction_temp, None, start_direction])
+        self.c_function_params = 0
+
 
     #Functions
     def generate_end_proc(self):
