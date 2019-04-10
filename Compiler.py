@@ -1,3 +1,4 @@
+import pickle
 from collections import deque
 from semantic_cube import get_semantic_cube
 
@@ -30,11 +31,15 @@ OR = '||'
 ASSIGN = '='
 ERROR = 'error'
 PRINT = 'print'
+PRINT_NEW_LINE = 'print_new_line'
 READ = 'read'
 RETURN = 'return'
 GO_TO_F = 'go_to_f'
 GO_TO = 'go_to'
-
+START = 'start'
+END_PROC = 'end_proc'
+ERA = 'era'
+GO_SUB = 'go_sub'
 LIMIT_G_CHAR = 0
 LIMIT_G_INT = 40000
 LIMIT_G_BOOL = 80000
@@ -69,6 +74,7 @@ class Compiler:
 
 
         # Functions and variables tables
+        self.program_name = ''
         self.pending_ids = []
         self.current_function = GLOBAL
         self.current_variable = ''
@@ -76,7 +82,8 @@ class Compiler:
             GLOBAL: {
                 TYPE: VOID,
                 VARS: {},
-                PARAMS: []
+                PARAMS: [],
+                START: -1
             }
         }
 
@@ -89,6 +96,10 @@ class Compiler:
         self.current_cte_type = ''
         self.p_temporal = []
         self.p_jumps = []
+        self.c_function_params = 0
+
+    def save_program_name(self, prog_name):
+        self.program_name = prog_name
 
     def push_id(self, id):
         self.pending_ids.append(id)
@@ -136,13 +147,20 @@ class Compiler:
         self.current_function = function_name
         if function_name in self.functions:
             raise NameError('Function ', function_name, ' already exists')
-        self.functions[function_name] = {TYPE: "", VARS: {}, PARAMS: []}
+        self.functions[function_name] = {TYPE: "", VARS: {}, PARAMS: [], START: len(self.quadruples)}
+
 
     def add_type(self, type):
         self.functions[self.current_function][VARS][self.current_variable][0] = type
+        self.functions[self.current_function][VARS][self.current_variable][4] = self.get_variable_direction(type)
 
     def add_function_type(self, function_type):
         self.functions[self.current_function][TYPE] = function_type
+
+    def add_param(self, name):
+        self.current_variable = name
+        self.functions[self.current_function][VARS][self.current_variable] = ['', 1, 0, False, None]
+        self.functions[self.current_function][PARAMS].append(name)
 
     def print_tables(self):
         for func, value in self.functions.items():
@@ -271,6 +289,8 @@ class Compiler:
             raise NameError('Type Mismatch Error: ', to_assign_type , ' does not match ', assign_value_type)
         self.quadruples.append([ASSIGN, assign_value_direction, None, to_assign_direction])
 
+    def add_new_line(self):
+        self.quadruples.append([PRINT_NEW_LINE, None, None, None])
 
     def generate_print_quadruple(self):
         self.quadruples.append([PRINT, None, None, self.p_values.pop()])
@@ -297,8 +317,11 @@ class Compiler:
                 raise NameError('Variable: ', id, ' does not exist in context')
             self.quadruples.append([READ, None, None, variable[4]])
 
+    #Conditionals
     def generate_return_quadruple(self):
-        self.quadruples.append([RETURN, None, None, self.p_values.pop()])
+        direction = self.p_values[-1]
+
+        self.quadruples.append([RETURN, None, None, direction])
 
     def generate_go_to_f(self):
         self.add_breadcrumb()
@@ -326,12 +349,47 @@ class Compiler:
         quad_index = self.p_jumps.pop()
         self.quadruples.append([GO_TO, None, None, quad_index])
 
+    def assign_param_direction(self, function_call):
+        var_name = self.functions[function_call][PARAMS][self.c_function_params]
+        self.c_function_params += 1
+        variable = self.functions[function_call][VARS][var_name]
+        var_type = variable[0]
+        var_direction = variable[4]
+        argument = self.p_values.pop()
+        argument_type = self.get_direction_type(argument)
+        print(argument_type, var_type)
+        if (argument_type != var_type):
+            raise TypeError('Argument type error')
+        self.quadruples.append([ASSIGN, argument, None, var_direction])
+
+    def generate_era_quadruple(self):
+        self.quadruples.append([ERA, None, None, None])
+
+    def generate_go_sub_quadruple(self, name):
+        start_direction = self.functions[name][START]
+        direction_type = self.functions[name][TYPE]
+        direction_temp = self.get_variable_direction(direction_type)
+        self.p_values.append(direction_temp)
+        self.quadruples.append([GO_SUB, direction_temp, None, start_direction])
+        self.c_function_params = 0
+
+
+    #Functions
+    def generate_end_proc(self):
+        self.quadruples.append([END_PROC, None, None, None])
 
     def print_quad(self):
         self.print_tables()
         print(self.cte_values)
         for idx, quad in enumerate(self.quadruples):
             print(str(idx) + " : " , quad)
+
+    def write_quadruples(self):
+        quadruples = [self.quadruples, self.cte_values, self.functions['main'][START]]
+        file_name = self.program_name + '.stv'
+        file = open(file_name, 'wb')
+        pickle.dump(quadruples, file)
+        file.close()
 
     def print_piles(self):
         print(self.p_values)
