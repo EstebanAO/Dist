@@ -8,8 +8,8 @@ quad_assign = ''
 function_call = ''
 }
 
-dist                            : programa EOF {c.print_quad()};
-programa                        : PROGRAM ID ';' ((varss| vars_arreglo) ';')* funcion* MAIN {c.switch_context('main')} {c.add_function_type('void')}bloque_local;
+dist                            : programa EOF {c.print_quad()} {c.write_quadruples()};
+programa                        : PROGRAM ID {c.save_program_name($ID.text)} ';' ((varss| vars_arreglo) ';')* funcion* MAIN {c.switch_context('main')} {c.add_function_type('void')}bloque_local;
 expresion                       : exp_and ('||'{c.push_operator('||')} exp_and)*;
 exp_and                         : exp_comp ('&&' {c.push_operator('&&')} exp_comp)*{c.generate_operation_quadruple('||')};
 rel_op                          :('<' | '>' | '!=' | '<=' | '>=' | '==');
@@ -18,9 +18,9 @@ exp                             : termino (('+' {c.push_operator('+')} | '-'{c.p
 termino                         : factor (('*' {c.push_operator('*')} | '/' {c.push_operator('/')}) factor)* {c.generate_operation_quadruple('+')};
 factor                          : (('(' {c.push_operator('(')} expresion ')'{c.pop_operator()}) | (('+' | '-')? var_cte)) {c.generate_operation_quadruple('*')};
 var_cte                         : cte {c.push_constant_data($cte.text)} | ID {c.push_variable_data($ID.text)} | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
-cte                             : (CTE_I {c.current_cte_type = 'int'} | CTE_F {c.current_cte_type = 'float'} | CTE_C {c.current_cte_type = 'char'} | CTE_B {c.current_cte_type = 'null'} | NULL {c.current_cte_type = 'null'});
+cte                             : (CTE_I {c.current_cte_type = 'int'} | CTE_F {c.current_cte_type = 'float'} | CTE_C {c.current_cte_type = 'char'} | CTE_B {c.current_cte_type = 'bool'} | NULL {c.current_cte_type = 'null'});
 lectura                         : READ '(' ID | posicion_arreglo ')';
-escritura                       : PRINT '(' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}) {c.generate_print_quadruple()} (',' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}){c.generate_print_quadruple()})* ')';
+escritura                       : PRINT '(' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}) {c.generate_print_quadruple()} (',' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}){c.generate_print_quadruple()})* ')' {c.add_new_line()};
 tipo                            : INT | FLOAT | CHAR | BOOL;
 tipo_funcion                    : tipo | VOID;
 varss                           : VAR ID {c.push_id($ID.text)} (',' ID {c.push_id($ID.text)})* ':' tipo {c.add_variables($tipo.text)};

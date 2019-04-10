@@ -1,3 +1,4 @@
+import pickle
 from collections import deque
 from semantic_cube import get_semantic_cube
 
@@ -30,6 +31,7 @@ OR = '||'
 ASSIGN = '='
 ERROR = 'error'
 PRINT = 'print'
+PRINT_NEW_LINE = 'print_new_line'
 READ = 'read'
 RETURN = 'return'
 GO_TO_F = 'go_to_f'
@@ -72,6 +74,7 @@ class Compiler:
 
 
         # Functions and variables tables
+        self.program_name = ''
         self.pending_ids = []
         self.current_function = GLOBAL
         self.current_variable = ''
@@ -94,6 +97,9 @@ class Compiler:
         self.p_temporal = []
         self.p_jumps = []
         self.c_function_params = 0
+
+    def save_program_name(self, prog_name):
+        self.program_name = prog_name
 
     def push_id(self, id):
         self.pending_ids.append(id)
@@ -283,6 +289,8 @@ class Compiler:
             raise NameError('Type Mismatch Error: ', to_assign_type , ' does not match ', assign_value_type)
         self.quadruples.append([ASSIGN, assign_value_direction, None, to_assign_direction])
 
+    def add_new_line(self):
+        self.quadruples.append([PRINT_NEW_LINE, None, None, None])
 
     def generate_print_quadruple(self):
         self.quadruples.append([PRINT, None, None, self.p_values.pop()])
@@ -375,6 +383,13 @@ class Compiler:
         print(self.cte_values)
         for idx, quad in enumerate(self.quadruples):
             print(str(idx) + " : " , quad)
+
+    def write_quadruples(self):
+        quadruples = [self.quadruples, self.cte_values, self.functions['main'][START]]
+        file_name = self.program_name + '.stv'
+        file = open(file_name, 'wb')
+        pickle.dump(quadruples, file)
+        file.close()
 
     def print_piles(self):
         print(self.p_values)
