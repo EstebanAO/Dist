@@ -150,6 +150,28 @@ class VirtualMachine:
         print(self.global_var)
         print(self.local)
 
+    def read_function(self, direction):
+        type = self.get_direction_type(direction)
+        try:
+            val = input()
+            if type == INT:
+                self.set_variable_value(direction, int(val))
+            elif type == FLOAT:
+                self.set_variable_value(direction, float(val))
+            elif type == CHAR:
+                self.set_variable_value(direction, '\'' + str(val)[0] + '\'')
+            elif type == BOOL:
+                if val == 'true':
+                    val = True
+                elif val == 'false':
+                    val = False
+                else:
+                    raise TypeError('Read type error')
+                self.set_variable_value(direction, val)
+        except:
+            raise TypeError('Read type error')
+
+
     def run(self, file_name):
         self.get_quadruples(file_name)
         self.local.append({})
@@ -192,14 +214,16 @@ class VirtualMachine:
                 self.set_variable_value(quad[3], value_left or value_right)
             elif (quad[0] == PRINT):
                 print_value = self.get_variable_value(quad[3])
-                sys.stdout.write(str(print_value))
-            elif (quad[0] == PRINT):
-
-                print_value = self.get_variable_value(quad[3])
-                sys.stdout.write(str(print_value))
+                if type(print_value) == bool:
+                    sys.stdout.write('true' if print_value else 'false')
+                else:
+                    sys.stdout.write(str(print_value))
             elif (quad[0] == PRINT_NEW_LINE):
                 print_value = ''
                 print(print_value)
+            elif (quad[0] == READ):
+                self.read_function(quad[3])
+
 
             index += 1
 

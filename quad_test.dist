@@ -3,9 +3,6 @@ program superCool;
 var i, t : int;
 
 fun uno(paramUno: char, paramDos:int) : float {
-  var flo : int;
-  paramDos = 3;
-  uno(paramUno, flo);
   return 1.1;
 }
 
@@ -17,9 +14,27 @@ fun cero(paramUno: char, paramDos:int) : char {
 
 
 main {
-  var x, t : char;
-  var i : int;
-  i = i +5;
-  uno(x, i);
-  i = i + 5;
+  var z : bool;
+  var x, x2 : int;
+  var flo, flo2 : float;
+  var c : char;
+  var ay:bool;
+  x = 2;
+  flo = 2.3;
+  z = true;
+  i = 6;
+  t = 3;
+  flo = (5 + 8) * 3.1 / 10;
+  x2 = flo;
+  flo2 = 5 / 3 + 1.8;
+  ay = 5 * 2 <= 10 || false;
+  read(z);
+  read(x);
+  read(flo);
+  read(c);
+  print("Resultado de z : ", z) ;
+  print("Resultado de x : ", x) ;
+  print("Resultado de flo : ", flo);
+  print("Resultado de c : ", c);
+
 }

@@ -296,26 +296,14 @@ class Compiler:
         self.quadruples.append([PRINT, None, None, self.p_values.pop()])
 
     def generate_read_quadruple(self, id):
-        if id == None:
-            if self.quadruples[-1][1][0] in self.functions[self.current_function][VARS] or self.quadruples[-1][1][0] in self.functions[GLOBAL][VARS]:
-                self.quadruples.append([READ, None, None, self.quadruples[-1][3]])
-            else:
-                raise NameError('Variable: ', self.quadruples[-1][1][0], ' does not exist in context')
+        if id in self.functions[self.current_function][VARS]:
+            direction = self.functions[self.current_function][VARS][id][4]
+            self.quadruples.append([READ, None, None, direction])
+        elif id in self.functions[GLOBAL][VARS]:
+            direction = self.functions[GLOBAL][VARS][id][4]
+            self.quadruples.append([READ, None, None, direction])
         else:
-            if id in self.functions[self.current_function][VARS] or id in self.functions[GLOBAL][VARS]:
-                self.quadruples.append([READ, None, None, id])
-            else:
-                raise NameError('Variable: ', id, ' does not exist in context')
-
-    def generate_read_quadruple(self, id):
-        if id == None:
-            if id in self.functions[self.current_function][VARS]:
-                variable = self.functions[self.current_function][VARS][id]
-            elif id in self.functions[GLOBAL][VARS]:
-                variable = self.functions[GLOBAL][VARS][id]
-            else:
-                raise NameError('Variable: ', id, ' does not exist in context')
-            self.quadruples.append([READ, None, None, variable[4]])
+            raise NameError('Variable: ', id, ' does not exist in context')
 
     #Conditionals
     def generate_return_quadruple(self):
