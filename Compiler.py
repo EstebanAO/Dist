@@ -58,19 +58,19 @@ LIMIT_C_STRING = 480000
 class Compiler:
     def __init__(self):
         #Counters
-        self.g_char = LIMIT_G_CHAR
-        self.g_int = LIMIT_G_INT
-        self.g_bool = LIMIT_G_BOOL
-        self.g_float = LIMIT_G_FLOAT
-        self.l_char = LIMIT_L_CHAR
-        self.l_int = LIMIT_L_INT
-        self.l_bool = LIMIT_L_BOOL
-        self.l_float = LIMIT_L_FLOAT
-        self.c_char = LIMIT_C_CHAR
-        self.c_int = LIMIT_C_INT
-        self.c_bool = LIMIT_C_BOOL
-        self.c_float = LIMIT_C_FLOAT
-        self.c_string = LIMIT_C_STRING
+        self.g_char = LIMIT_G_CHAR - 1
+        self.g_int = LIMIT_G_INT - 1
+        self.g_bool = LIMIT_G_BOOL - 1
+        self.g_float = LIMIT_G_FLOAT - 1
+        self.l_char = LIMIT_L_CHAR - 1
+        self.l_int = LIMIT_L_INT - 1
+        self.l_bool = LIMIT_L_BOOL - 1
+        self.l_float = LIMIT_L_FLOAT - 1
+        self.c_char = LIMIT_C_CHAR - 1
+        self.c_int = LIMIT_C_INT - 1
+        self.c_bool = LIMIT_C_BOOL - 1
+        self.c_float = LIMIT_C_FLOAT - 1
+        self.c_string = LIMIT_C_STRING - 1
 
 
         # Functions and variables tables
@@ -140,10 +140,10 @@ class Compiler:
             self.functions[self.current_function][VARS][name] = [type, 1, 0, False, self.get_variable_direction(type)]
 
     def switch_context(self, function_name):
-        self.l_char = LIMIT_L_CHAR
-        self.l_int = LIMIT_L_INT
-        self.l_bool = LIMIT_L_BOOL
-        self.l_float = LIMIT_L_FLOAT
+        self.l_char = LIMIT_L_CHAR - 1
+        self.l_int = LIMIT_L_INT - 1
+        self.l_bool = LIMIT_L_BOOL - 1
+        self.l_float = LIMIT_L_FLOAT - 1
         self.current_function = function_name
         if function_name in self.functions:
             raise NameError('Function ', function_name, ' already exists')

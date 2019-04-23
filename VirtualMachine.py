@@ -40,6 +40,7 @@ START = 'start'
 END_PROC = 'end_proc'
 ERA = 'era'
 GO_SUB = 'go_sub'
+GENERATE_MEMORY = 'generate_memory'
 
 LIMIT_G_CHAR = 0
 LIMIT_G_INT = 40000
@@ -54,6 +55,7 @@ LIMIT_C_INT = 360000
 LIMIT_C_BOOL = 400000
 LIMIT_C_FLOAT = 440000
 LIMIT_C_STRING = 480000
+MEMORY_RANGE = 40000
 
 class VirtualMachine:
     def __init__(self):
@@ -63,7 +65,7 @@ class VirtualMachine:
         self.start_direction = 0
 
         #Virtual Machine Data
-        self.global_var = {}
+        self.global_var = [[],[],[],[]]
         self.local = []
 
     def print_quad(self):
@@ -73,9 +75,9 @@ class VirtualMachine:
 
     def get_variable_value(self, direction):
         if direction < LIMIT_L_CHAR:
-            return self.global_var[direction]
+            return self.global_var[int(direction / MEMORY_RANGE)][direction % MEMORY_RANGE]
         elif direction < LIMIT_C_CHAR:
-            return self.local[-1][direction]
+            return self.local[-1][int(direction / MEMORY_RANGE) - 4][direction % MEMORY_RANGE]
         else:
             return self.constants[direction]
 
@@ -140,11 +142,32 @@ class VirtualMachine:
         else:
             return STRING
 
+    def generate_memory_global(self, index_type, index_limit):
+        global_size = len(self.global_var[index_type])
+        while ( global_size <= index_limit ):
+            self.global_var[index_type].append(None)
+            global_size += 1
+
+    def generate_memory_local(self, index_type, index_limit):
+        local_size = len(self.local[-1][index_type])
+        while ( local_size <= index_limit ):
+            self.local[-1][index_type].append(None)
+            local_size += 1
+
     def set_variable_value(self, direction, value):
+        self.print_stuff()
+        print("Division", int(direction / MEMORY_RANGE))
+        print("Modulo", direction % MEMORY_RANGE)
         if direction < LIMIT_L_CHAR:
-            self.global_var[direction] = self.cast_type(direction, value)
+            index_type = int(direction / MEMORY_RANGE)
+            index_limit = direction % MEMORY_RANGE
+            self.generate_memory_global(index_type, index_limit)
+            self.global_var[index_type][index_limit] = self.cast_type(direction, value)
         else:
-            self.local[-1][direction] = self.cast_type(direction, value)
+            index_type = int(direction / MEMORY_RANGE) - 4
+            index_limit = direction % MEMORY_RANGE
+            self.generate_memory_local(index_type, index_limit)
+            self.local[-1][index_type][index_limit] = self.cast_type(direction, value)
 
     def print_stuff(self):
         print(self.global_var)
@@ -171,10 +194,9 @@ class VirtualMachine:
         except:
             raise TypeError('Read type error')
 
-
     def run(self, file_name):
         self.get_quadruples(file_name)
-        self.local.append({})
+        self.local.append([[],[],[],[]])
         index = 0
         while(index < len(self.quadruples)):
             quad = self.quadruples[index]
