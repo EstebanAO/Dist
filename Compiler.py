@@ -137,7 +137,7 @@ class Compiler:
     def add_variables(self, type):
         while (len(self.pending_ids) > 0):
             name = self.pending_ids.pop()
-            self.functions[self.current_function][VARS][name] = [type, 1, 0, False, self.get_variable_direction(type)]
+            self.functions[self.current_function][VARS][name] = [type, self.get_variable_direction(type)]
 
     def switch_context(self, function_name):
         self.l_char = LIMIT_L_CHAR - 1
@@ -152,14 +152,14 @@ class Compiler:
 
     def add_type(self, type):
         self.functions[self.current_function][VARS][self.current_variable][0] = type
-        self.functions[self.current_function][VARS][self.current_variable][4] = self.get_variable_direction(type)
+        self.functions[self.current_function][VARS][self.current_variable][1] = self.get_variable_direction(type)
 
     def add_function_type(self, function_type):
         self.functions[self.current_function][TYPE] = function_type
 
     def add_param(self, name):
         self.current_variable = name
-        self.functions[self.current_function][VARS][self.current_variable] = ['', 1, 0, False, None]
+        self.functions[self.current_function][VARS][self.current_variable] = ['', None]
         self.functions[self.current_function][PARAMS].append(name)
 
     def print_tables(self):
@@ -168,10 +168,7 @@ class Compiler:
             for var, data in value[VARS].items():
                 print("   ", var)
                 print("      Tipo: ", data[0])
-                if(data[3]):
-                    print("      Dim 1: ", data[1])
-                    print("      Dim 2: ", data[2])
-                print("      Dirección: ", data[4])
+                print("      Dirección: ", data[1])
 
 
     # Quadruples logic
@@ -179,10 +176,10 @@ class Compiler:
     def push_variable_data(self, id):
         if id in self.functions[self.current_function][VARS]:
             variable = self.functions[self.current_function][VARS][id]
-            self.p_values.append(variable[4])
+            self.p_values.append(variable[1])
         elif id in self.functions[GLOBAL][VARS]:
             variable = self.functions[GLOBAL][VARS][id]
-            self.p_values.append(variable[4])
+            self.p_values.append(variable[1])
         else:
             raise NameError('Variable: ', id, ' does not exist in context')
 
@@ -273,10 +270,10 @@ class Compiler:
     def get_variable(self, id):
         if id in self.functions[self.current_function][VARS]:
             variable = self.functions[self.current_function][VARS][id]
-            return variable[4]
+            return variable[1]
         elif id in self.functions[GLOBAL][VARS]:
             variable = self.functions[GLOBAL][VARS][id]
-            return variable[4]
+            return variable[1]
         else:
             raise NameError('Variable: ', id, ' does not exist in context')
 
@@ -297,10 +294,10 @@ class Compiler:
 
     def generate_read_quadruple(self, id):
         if id in self.functions[self.current_function][VARS]:
-            direction = self.functions[self.current_function][VARS][id][4]
+            direction = self.functions[self.current_function][VARS][id][1]
             self.quadruples.append([READ, None, None, direction])
         elif id in self.functions[GLOBAL][VARS]:
-            direction = self.functions[GLOBAL][VARS][id][4]
+            direction = self.functions[GLOBAL][VARS][id][1]
             self.quadruples.append([READ, None, None, direction])
         else:
             raise NameError('Variable: ', id, ' does not exist in context')
@@ -342,7 +339,7 @@ class Compiler:
         self.c_function_params += 1
         variable = self.functions[function_call][VARS][var_name]
         var_type = variable[0]
-        var_direction = variable[4]
+        var_direction = variable[1]
         argument = self.p_values.pop()
         argument_type = self.get_direction_type(argument)
         print(argument_type, var_type)

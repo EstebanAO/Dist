@@ -155,9 +155,6 @@ class VirtualMachine:
             local_size += 1
 
     def set_variable_value(self, direction, value):
-        self.print_stuff()
-        print("Division", int(direction / MEMORY_RANGE))
-        print("Modulo", direction % MEMORY_RANGE)
         if direction < LIMIT_L_CHAR:
             index_type = int(direction / MEMORY_RANGE)
             index_limit = direction % MEMORY_RANGE
