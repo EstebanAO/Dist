@@ -137,7 +137,7 @@ class Compiler:
     def add_variables(self, type):
         while (len(self.pending_ids) > 0):
             name = self.pending_ids.pop()
-            self.functions[self.current_function][VARS][name] = [type, self.get_variable_direction(type)]
+            self.functions[self.current_function][VARS][name] = [type, self.get_variable_direction(type), None, None]
 
     def switch_context(self, function_name):
         self.l_char = LIMIT_L_CHAR - 1
@@ -149,6 +149,41 @@ class Compiler:
             raise NameError('Function ', function_name, ' already exists')
         self.functions[function_name] = {TYPE: "", VARS: {}, PARAMS: [], START: len(self.quadruples)}
 
+    def update_direction_counter(self, type, count):
+        if type == INT:
+            if self.current_function == GLOBAL:
+                self.g_int += count
+            else:
+                self.l_int += count
+        elif type == CHAR:
+            if self.current_function == GLOBAL:
+                self.g_char += count
+            else:
+                self.l_char += count
+        elif type == BOOL:
+            if self.current_function == GLOBAL:
+                self.g_bool += count
+            else:
+                self.l_bool += count
+        elif type == FLOAT:
+            if self.current_function == GLOBAL:
+                self.g_float += count
+            else:
+                self.l_float += count
+
+    def add_array_one_dim(self, dim_one, type):
+        name = self.pending_ids.pop()
+        if dim_one < 1:
+            raise IndexError('Array: ', name, ' size must be grater than zero')
+        self.functions[self.current_function][VARS][name] = [type, self.get_variable_direction(type), [0, dim_one, 0], None]
+        self.update_direction_counter(type, dim_one)
+
+    def add_array_two_dim(self, dim_one, dim_two, type):
+        name = self.pending_ids.pop()
+        if dim_one < 1 or dim_two < 1:
+            raise IndexError('Array: ', name, ' size must be grater than zero')
+        self.functions[self.current_function][VARS][name] = [type, self.get_variable_direction(type), [0, dim_one, dim_two], [0, dim_two, 0]]
+        self.update_direction_counter(type, dim_one * dim_two)
 
     def add_type(self, type):
         self.functions[self.current_function][VARS][self.current_variable][0] = type
@@ -167,8 +202,11 @@ class Compiler:
             print('Funcion: ', func, value[TYPE])
             for var, data in value[VARS].items():
                 print("   ", var)
-                print("      Tipo: ", data[0])
+                print("      Tipo     : ", data[0])
                 print("      Dirección: ", data[1])
+                print("      Dim 1    : ", data[2])
+                print("      Dim 2    : ", data[3])
+
 
 
     # Quadruples logic

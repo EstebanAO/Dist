@@ -6,6 +6,8 @@ c = Compiler()
 id_arr = ''
 quad_assign = ''
 function_call = ''
+dim_one = ''
+dim_two = ''
 }
 
 dist                            : programa EOF {c.print_quad()} {c.write_quadruples()};
@@ -42,10 +44,10 @@ llamada_funcion				         	: ID {function_call = $ID.text} {c.generate_era_qua
 dimension_arreglo               : '[' CTE_I ']'  ('[' CTE_I ']')?;
 funcion                         :  FUN ID {c.switch_context($ID.text)} '(' (ID {c.add_param($ID.text)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) }  (',' ID {c.add_param($ID.text)} dimension_arreglo? ':' tipo {c.add_type($tipo.text) } )*)? ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)} bloque_local {c.generate_end_proc()};
 
-vars_arreglo                    : VAR ID (('[' CTE_I ']' dimension_uno) | ('[' CTE_I ']' '[' CTE_I ']' dimension_dos ));
+vars_arreglo                    : VAR ID {c.push_id($ID.text)} (('[' CTE_I ']' ':' tipo {c.add_array_one_dim(int($CTE_I.text), $tipo.text)} dimension_uno ) | ('[' CTE_I {dim_one = $CTE_I.text } ']' '[' CTE_I {dim_two = $CTE_I.text } ']' ':' tipo {c.add_array_two_dim(int(dim_one), int(dim_two), $tipo.text)} dimension_dos ));
 mult_cte                        : '{' cte {c.push_constant_data($cte.text)} (',' cte{c.push_constant_data($cte.text)} )* '}';
-dimension_uno                   : ':' tipo ('=' mult_cte)?;
-dimension_dos                   : ':' tipo ('=' '{' mult_cte (',' mult_cte )* '}' )?;
+dimension_uno                   : ('=' mult_cte)?;
+dimension_dos                   : ('=' '{' mult_cte (',' mult_cte )* '}' )?;
 
 posicion_arreglo                : ID {id_arr = $ID.text} (('[' exp ']') | ('[' exp ']' '[' exp ']'));
 
