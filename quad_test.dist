@@ -1,7 +1,10 @@
 program superCool;
 
 main {
-  var holi[6] : int;
-  var holo[7][6] : int;
-
+  var x , y: int;
+  var holo[20] : int;
+  x = 1;
+  holo[2] = 9;
+  holo[9] = 100;
+  holo[3] = holo[holo[2]] * 2;
 }

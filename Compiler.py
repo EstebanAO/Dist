@@ -40,6 +40,9 @@ START = 'start'
 END_PROC = 'end_proc'
 ERA = 'era'
 GO_SUB = 'go_sub'
+FILL_ARRAY = 'fill_array'
+VER = 'ver'
+
 LIMIT_G_CHAR = 0
 LIMIT_G_INT = 40000
 LIMIT_G_BOOL = 80000
@@ -98,6 +101,9 @@ class Compiler:
         self.p_jumps = []
         self.c_function_params = 0
 
+        #Assign array
+        self.id_arr = ''
+
     def save_program_name(self, prog_name):
         self.program_name = prog_name
 
@@ -150,40 +156,61 @@ class Compiler:
         self.functions[function_name] = {TYPE: "", VARS: {}, PARAMS: [], START: len(self.quadruples)}
 
     def update_direction_counter(self, type, count):
-        if type == INT:
+
+        if type == CHAR:
             if self.current_function == GLOBAL:
-                self.g_int += count
-            else:
-                self.l_int += count
-        elif type == CHAR:
-            if self.current_function == GLOBAL:
+                if self.g_char + count >= LIMIT_G_INT:
+                    raise MemoryError('Memory error')
                 self.g_char += count
             else:
+                if self.l_char + count >= LIMIT_L_INT:
+                    raise MemoryError('Memory error')
                 self.l_char += count
+        elif type == INT:
+            if self.current_function == GLOBAL:
+                if self.g_int + count >= LIMIT_G_BOOL:
+                    raise MemoryError('Memory error')
+                self.g_int += count
+            else:
+                if self.l_int + count >= LIMIT_L_BOOL:
+                    raise MemoryError('Memory error')
+                self.l_int += count
         elif type == BOOL:
             if self.current_function == GLOBAL:
+                if self.g_bool + count >= LIMIT_G_FLOAT:
+                    raise MemoryError('Memory error')
                 self.g_bool += count
             else:
+                if self.l_bool + count >= LIMIT_L_FLOAT:
+                    raise MemoryError('Memory error')
                 self.l_bool += count
         elif type == FLOAT:
             if self.current_function == GLOBAL:
+                if self.g_float + count >= LIMIT_L_CHAR:
+                    raise MemoryError('Memory error')
                 self.g_float += count
             else:
+                if self.l_float + count >= LIMIT_C_CHAR:
+                    raise MemoryError('Memory error')
                 self.l_float += count
 
     def add_array_one_dim(self, dim_one, type):
         name = self.pending_ids.pop()
         if dim_one < 1:
             raise IndexError('Array: ', name, ' size must be grater than zero')
-        self.functions[self.current_function][VARS][name] = [type, self.get_variable_direction(type), [0, dim_one, 0], None]
+        direction = self.get_variable_direction(type)
+        self.functions[self.current_function][VARS][name] = [type, direction, [dim_one, 0], None]
         self.update_direction_counter(type, dim_one)
+        self.quadruples.append([FILL_ARRAY, None, None, direction + dim_one])
 
     def add_array_two_dim(self, dim_one, dim_two, type):
         name = self.pending_ids.pop()
         if dim_one < 1 or dim_two < 1:
             raise IndexError('Array: ', name, ' size must be grater than zero')
-        self.functions[self.current_function][VARS][name] = [type, self.get_variable_direction(type), [0, dim_one, dim_two], [0, dim_two, 0]]
+        direction = self.get_variable_direction(type)
+        self.functions[self.current_function][VARS][name] = [type, direction, [dim_one, dim_two], [dim_two, 0]]
         self.update_direction_counter(type, dim_one * dim_two)
+        self.quadruples.append([FILL_ARRAY, None, None, direction + dim_one * dim_two])
 
     def add_type(self, type):
         self.functions[self.current_function][VARS][self.current_variable][0] = type
@@ -250,6 +277,7 @@ class Compiler:
         self.p_operators.pop()
 
     def get_direction_type(self, direction):
+        direction = int(direction)
         if direction < LIMIT_G_INT:
             return CHAR
         elif direction < LIMIT_G_BOOL:
@@ -343,7 +371,6 @@ class Compiler:
     #Conditionals
     def generate_return_quadruple(self):
         direction = self.p_values[-1]
-
         self.quadruples.append([RETURN, None, None, direction])
 
     def generate_go_to_f(self):
@@ -396,6 +423,38 @@ class Compiler:
         self.quadruples.append([GO_SUB, direction_temp, None, start_direction])
         self.c_function_params = 0
 
+    def add_fake_bottom(self):
+        self.p_operators.append('(')
+
+    def access_array_dim_one(self, id):
+        if id in self.functions[self.current_function][VARS]:
+            if self.functions[self.current_function][VARS][id][2] == None:
+                raise TypeError('Variable: ', id, ' is not a one dimention array')
+            if self.functions[self.current_function][VARS][id][3] != None:
+                raise TypeError('Variable: ', id, ' is a two dimention array')
+            dim_one = self.functions[self.current_function][VARS][id][2][0]
+            direction = self.functions[self.current_function][VARS][id][1]
+            type = self.functions[self.current_function][VARS][id][0]
+        elif id in self.functions[GLOBAL][VARS]:
+            if self.functions[GLOBAL][VARS][id][2] == None:
+                raise TypeError('Variable: ', id, ' is not a one dimention array')
+            if self.functions[GLOBAL][VARS][id][3] != None:
+                raise TypeError('Variable: ', id, ' is a two dimention array')
+            dim_one = self.functions[GLOBAL][VARS][id][2][0]
+            direction = self.functions[GLOBAL][VARS][id][1]
+            type = self.functions[GLOBAL][VARS][id][0]
+        else:
+            raise NameError('Variable: ', id, ' does not exist in context')
+        print(self.p_values)
+        value = self.p_values.pop()
+        temp_direction = self.get_variable_direction(type)
+        self.quadruples.append([VER, value, None, dim_one])
+        self.current_cte_type = INT
+        self.push_constant_data(direction)
+        constant = self.p_values[-1]
+        self.quadruples.append([PLUS, value, constant, temp_direction])
+        self.p_values.append(str(temp_direction))
+        self.p_operators.pop()
 
     #Functions
     def generate_end_proc(self):

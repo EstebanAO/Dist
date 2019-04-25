@@ -40,7 +40,8 @@ START = 'start'
 END_PROC = 'end_proc'
 ERA = 'era'
 GO_SUB = 'go_sub'
-GENERATE_MEMORY = 'generate_memory'
+FILL_ARRAY = 'fill_array'
+VER = 'ver'
 
 LIMIT_G_CHAR = 0
 LIMIT_G_INT = 40000
@@ -74,6 +75,9 @@ class VirtualMachine:
             print(str(idx) + " : " , quad)
 
     def get_variable_value(self, direction):
+        print(direction)
+        if type(direction) == str:
+            direction = self.get_variable_value(int(direction))
         if direction < LIMIT_L_CHAR:
             return self.global_var[int(direction / MEMORY_RANGE)][direction % MEMORY_RANGE]
         elif direction < LIMIT_C_CHAR:
@@ -115,6 +119,7 @@ class VirtualMachine:
             return value[1:-1]
 
     def get_direction_type(self, direction):
+        direction = int(direction)
         if direction < LIMIT_G_INT:
             return CHAR
         elif direction < LIMIT_G_BOOL:
@@ -150,11 +155,35 @@ class VirtualMachine:
 
     def generate_memory_local(self, index_type, index_limit):
         local_size = len(self.local[-1][index_type])
+        if index_type == 0:
+            value = 'a'
+        elif index_type == 1:
+            value = int(0)
+        elif index_type == 2:
+            value = 'false'
+        elif index_type == 3:
+            value = 0.0
         while ( local_size <= index_limit ):
-            self.local[-1][index_type].append(None)
+            self.local[-1][index_type].append(value)
             local_size += 1
 
+    def fill_array(self, direction):
+        if direction < LIMIT_L_CHAR:
+            index_type = int(direction / MEMORY_RANGE)
+            index_limit = direction % MEMORY_RANGE
+            self.generate_memory_global(index_type, index_limit)
+            self.global_var[index_type][index_limit] = '@'
+        else:
+            index_type = int(direction / MEMORY_RANGE) - 4
+            index_limit = direction % MEMORY_RANGE
+            self.generate_memory_local(index_type, index_limit)
+            self.local[-1][index_type][index_limit] = '@'
+
     def set_variable_value(self, direction, value):
+        print('set', direction)
+        if type(direction) == str:
+            direction = self.get_variable_value(int(direction))
+
         if direction < LIMIT_L_CHAR:
             index_type = int(direction / MEMORY_RANGE)
             index_limit = direction % MEMORY_RANGE
@@ -242,8 +271,11 @@ class VirtualMachine:
                 print(print_value)
             elif (quad[0] == READ):
                 self.read_function(quad[3])
-
-
+            elif (quad[0] == FILL_ARRAY):
+                self.fill_array(quad[3])
+            elif (quad[0] == VER):
+                if value_left > quad[3] - 1:
+                    raise IndexError('Index error')
             index += 1
 
         self.print_stuff()

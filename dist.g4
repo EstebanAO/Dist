@@ -8,6 +8,7 @@ quad_assign = ''
 function_call = ''
 dim_one = ''
 dim_two = ''
+
 }
 
 dist                            : programa EOF {c.print_quad()} {c.write_quadruples()};
@@ -22,7 +23,7 @@ factor                          : (('(' {c.push_operator('(')} expresion ')'{c.p
 var_cte                         : cte {c.push_constant_data($cte.text)} | ID {c.push_variable_data($ID.text)} | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
 cte                             : (CTE_I {c.current_cte_type = 'int'} | CTE_F {c.current_cte_type = 'float'} | CTE_C {c.current_cte_type = 'char'} | CTE_B {c.current_cte_type = 'bool'} | NULL {c.current_cte_type = 'null'});
 lectura                         : READ '(' ID {c.generate_read_quadruple($ID.text)}')';
-escritura                       : PRINT '(' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}) {c.generate_print_quadruple()} (',' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}){c.generate_print_quadruple()})* ')' {c.add_new_line()};
+escritura                       : PRINT '(' (expresion | CTE_STRING {c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}) {c.generate_print_quadruple()} (',' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}){c.generate_print_quadruple()})* ')' {c.add_new_line()};
 tipo                            : INT | FLOAT | CHAR | BOOL;
 tipo_funcion                    : tipo | VOID;
 varss                           : VAR ID {c.push_id($ID.text)} (',' ID {c.push_id($ID.text)})* ':' tipo {c.add_variables($tipo.text)};
@@ -49,13 +50,13 @@ mult_cte                        : '{' cte {c.push_constant_data($cte.text)} (','
 dimension_uno                   : ('=' mult_cte)?;
 dimension_dos                   : ('=' '{' mult_cte (',' mult_cte )* '}' )?;
 
-posicion_arreglo                : ID {id_arr = $ID.text} (('[' exp ']') | ('[' exp ']' '[' exp ']'));
+posicion_arreglo                : ID {c.id_assign = $ID.text} (('[' {c.add_fake_bottom()} exp ']' {c.access_array_dim_one(c.id_assign)}) | ('[' exp ']' '[' exp ']'{c.access_array_dim_one(c.id_assign)}));
 
 estatuto                        : (asignacion | condicion | while_cycle | escritura | lectura | llamada_funcion | llamada_funcion_especial | returnn) ';';
 
 bloque_condicional              : '{' estatuto* '}';
 bloque_local                    : '{' ((varss| vars_arreglo) ';')* estatuto* '}';
-asignacion                      : (ID {quad_assign = c.get_variable($ID.text)} | posicion_arreglo ) '=' expresion {c.generate_assign_quadruple(quad_assign)};
+asignacion                      : (ID {quad_assign = c.get_variable($ID.text)} | posicion_arreglo {quad_assign = c.p_values.pop()} ) '=' expresion {c.generate_assign_quadruple(quad_assign)};
 
 condicion                       : IF '(' expresion ')' {c.generate_go_to_f()} bloque_condicional (ELSE {c.generate_else_go_to()} bloque_condicional)? {c.complete_go_to_f()};
 while_cycle                     : WHILE {c.add_breadcrumb()}'(' expresion ')' {c.generate_go_to_f()} bloque_condicional {c.end_of_while()};
