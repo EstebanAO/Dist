@@ -50,7 +50,7 @@ mult_cte                        : '{' cte {c.push_constant_data($cte.text)} (','
 dimension_uno                   : ('=' mult_cte)?;
 dimension_dos                   : ('=' '{' mult_cte (',' mult_cte )* '}' )?;
 
-posicion_arreglo                : ID {c.id_assign = $ID.text} (('[' {c.add_fake_bottom()} exp ']' {c.access_array_dim_one(c.id_assign)}) | ('[' exp ']' '[' exp ']'{c.access_array_dim_one(c.id_assign)}));
+posicion_arreglo                : ID {c.id_assign = $ID.text} (('[' {c.add_fake_bottom()} exp ']' {c.access_array_dim_one($ID.text)}) | ('[' exp ']' '[' exp ']'{c.access_array_dim_one(c.id_assign)}));
 
 estatuto                        : (asignacion | condicion | while_cycle | escritura | lectura | llamada_funcion | llamada_funcion_especial | returnn) ';';
 

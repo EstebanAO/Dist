@@ -199,6 +199,7 @@ class Compiler:
         if dim_one < 1:
             raise IndexError('Array: ', name, ' size must be grater than zero')
         direction = self.get_variable_direction(type)
+        print(" > DIM1: ", dim_one)
         self.functions[self.current_function][VARS][name] = [type, direction, [dim_one, 0], None]
         self.update_direction_counter(type, dim_one)
         self.quadruples.append([FILL_ARRAY, None, None, direction + dim_one])
@@ -427,6 +428,8 @@ class Compiler:
         self.p_operators.append('(')
 
     def access_array_dim_one(self, id):
+        #id = self.id_assign
+        print("Accessing array", id)
         if id in self.functions[self.current_function][VARS]:
             if self.functions[self.current_function][VARS][id][2] == None:
                 raise TypeError('Variable: ', id, ' is not a one dimention array')
@@ -448,6 +451,7 @@ class Compiler:
         #print(self.p_values)
         value = self.p_values.pop()
         temp_direction = self.get_variable_direction(type)
+        print(" >> DIM1: ", dim_one);
         self.quadruples.append([VER, value, None, dim_one])
         self.current_cte_type = INT
         self.push_constant_data(direction)
