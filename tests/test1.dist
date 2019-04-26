@@ -7,3 +7,6 @@ main {
   arr[4] = 1000;
   print(arr[0], " ", arr[2], " ", arr[4]);
 }
+
+// resultado esperado
+// 10 100 1000

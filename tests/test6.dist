@@ -1,0 +1,21 @@
+program test6;
+var ay, uy, res:int;
+main {
+  var arr[10]:int;
+  arr[0] = 10;
+  arr[4] = 1 + arr[0] / 2; // 6
+  arr[6] = 7;
+  arr[arr[6]] = 789; // arr[7]
+  ay = 1 + (arr[0] * 12); // 121
+  print(15 + arr[0] * arr[0] * arr[0]); // 1015
+  print(ay);
+  arr[arr[ay - 117]-2] = 8 + arr[arr[arr[4]]] - arr[0]; // 787
+  print(arr[4]);
+  res = arr[0] + arr[4] + arr[6] + arr[7]; // 812
+  print(res);
+}
+// resultado esperado
+// 1015
+// 121
+// 787
+// 1593

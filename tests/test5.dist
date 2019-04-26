@@ -1,0 +1,17 @@
+program test5;
+
+main {
+  var arr[9]:char;
+  // arr[0] = '-'; // esto causa problemas
+  arr[1] = 'M';
+  arr[2] = 'X';
+  arr[3] = 'D';
+  arr[4] = 'A';
+  arr[5] = 'M';
+  arr[6] = 'E';
+  arr[7] = 'A';
+  arr[8] = 'Y';
+  print(" ", arr[5],arr[7],arr[3],arr[4],arr[1],arr[6]," ", arr[2]);
+}
+// resultado esperado
+//  MADAME X

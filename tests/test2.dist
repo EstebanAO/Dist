@@ -7,3 +7,6 @@ main {
   arr2[arr1[4]] = 100;
   print(arr1[4], " ", arr2[10]);
 }
+
+// resultado esperado
+// 10 100

@@ -455,7 +455,7 @@ class Compiler:
         self.quadruples.append([VER, value, None, dim_one])
         self.current_cte_type = INT
         self.push_constant_data(direction)
-        constant = self.p_values[-1]
+        constant = self.p_values.pop()
         self.quadruples.append([PLUS, value, constant, temp_direction])
         self.p_values.append(str(temp_direction))
         self.p_operators.pop()

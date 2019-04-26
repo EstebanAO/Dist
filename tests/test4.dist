@@ -1,0 +1,17 @@
+program test4;
+
+var x, y : int;
+var arr1[10] : int;
+var arr2[50] : int;
+main {
+  var arr3[100] : int;
+  y = (170/17 + 156 / (9 + 1 * 4)) + (894 + (36 / 6) +100) - 1000; // 22
+  x = y / 11; // 2
+  arr1[1] = 1;
+  arr1[x + 5] = x * 100; // 200
+  arr3[x + 1] = arr1[x + 5] + 22; // 222
+  arr2[arr3[arr1[1] + 2]/14] = arr3[x + 1] * 2; // arr[15] = 444
+  print(arr1[7], " ", arr3[3], " ", arr2[15]);
+}
+// resultado esperado
+// 200 222 444
