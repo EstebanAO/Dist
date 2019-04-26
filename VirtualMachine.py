@@ -75,7 +75,7 @@ class VirtualMachine:
             print(str(idx) + " : " , quad)
 
     def get_variable_value(self, direction):
-        print(direction)
+    #    print(direction)
         if type(direction) == str:
             direction = self.get_variable_value(int(direction))
         if direction < LIMIT_L_CHAR:
@@ -180,7 +180,7 @@ class VirtualMachine:
             self.local[-1][index_type][index_limit] = '@'
 
     def set_variable_value(self, direction, value):
-        print('set', direction)
+        #print('set', direction)
         if type(direction) == str:
             direction = self.get_variable_value(int(direction))
 
@@ -196,6 +196,7 @@ class VirtualMachine:
             self.local[-1][index_type][index_limit] = self.cast_type(direction, value)
 
     def print_stuff(self):
+        print('\n')
         print(self.global_var)
         print(self.local)
 
@@ -246,7 +247,7 @@ class VirtualMachine:
                     value_left = int(value_left)
                 self.set_variable_value(quad[3], value_left)
             elif (quad[0] == EQU):
-                print(value_left == value_right)
+            #    print(value_left == value_right)
                 self.set_variable_value(quad[3], value_left == value_right)
             elif (quad[0] == GREATER):
                 self.set_variable_value(quad[3], value_left > value_right)
@@ -275,9 +276,8 @@ class VirtualMachine:
                 self.fill_array(quad[3])
             elif (quad[0] == VER):
                 if value_left > quad[3] - 1:
-                    raise IndexError('Index error')
+                    raise IndexError('Index error ', value_left, ' ', quad[3] - 1)
             index += 1
-
         self.print_stuff()
 
     def get_quadruples(self, file_name):
@@ -288,4 +288,4 @@ class VirtualMachine:
         self.start_direction = file_array[2]
         self.cast_constants()
         quad_file.close()
-        self.print_quad()
+    #    self.print_quad()

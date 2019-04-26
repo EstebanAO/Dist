@@ -1,0 +1,12 @@
+program test1;
+
+main {
+  var arr[10]:int;
+  arr[0] = 10;
+  arr[2] = 100;
+  arr[4] = 1000;
+  print(arr[0], " ", arr[2], " ", arr[4]);
+}
+
+// resultado esperado
+// 10 100 100

@@ -1,0 +1,15 @@
+program test3;
+
+var x, y :int;
+main {
+  var arr1[10]:int;
+  var arr2[15]:int;
+  x = 2 * 5; // 10
+  y = 660;
+  arr1[0] = x / 2; // 5
+  arr2[arr1[0]] = y + 6;
+  print(arr1[0], " ", arr2[5]);
+}
+
+// resultado esperado
+// 5 666

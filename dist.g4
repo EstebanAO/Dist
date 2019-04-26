@@ -61,14 +61,6 @@ asignacion                      : (ID {quad_assign = c.get_variable($ID.text)} |
 condicion                       : IF '(' expresion ')' {c.generate_go_to_f()} bloque_condicional (ELSE {c.generate_else_go_to()} bloque_condicional)? {c.complete_go_to_f()};
 while_cycle                     : WHILE {c.add_breadcrumb()}'(' expresion ')' {c.generate_go_to_f()} bloque_condicional {c.end_of_while()};
 
-COMMENT
-    : '/*' .*? '*/' -> skip
-;
-
-LINE_COMMENT
-    : '//' ~[\r\n]* -> skip
-;
-
 /*
  * Lexer Rules
  */
@@ -121,3 +113,6 @@ LINE_COMMENT
 
  NEWLINE                        : ('\r'? '\n' | '\r')+ -> skip;
  WHITESPACE                     : (' ' | '\t') -> skip;
+
+ COMMENT: '/*' .*? '*/' -> skip;
+ LINE_COMMENT: '//' ~[\r\n]* -> skip;

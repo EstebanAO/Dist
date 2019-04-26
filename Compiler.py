@@ -407,7 +407,7 @@ class Compiler:
         var_direction = variable[1]
         argument = self.p_values.pop()
         argument_type = self.get_direction_type(argument)
-        print(argument_type, var_type)
+    #    print(argument_type, var_type)
         if (argument_type != var_type):
             raise TypeError('Argument type error')
         self.quadruples.append([ASSIGN, argument, None, var_direction])
@@ -445,7 +445,7 @@ class Compiler:
             type = self.functions[GLOBAL][VARS][id][0]
         else:
             raise NameError('Variable: ', id, ' does not exist in context')
-        print(self.p_values)
+        #print(self.p_values)
         value = self.p_values.pop()
         temp_direction = self.get_variable_direction(type)
         self.quadruples.append([VER, value, None, dim_one])
