@@ -1,10 +1,6 @@
 program quad_test;
 
 main {
-  var x , y: int;
-  var holo[20] : int;
-  x = 1;
-  holo[100] = 9;
-  holo[9] = 100;
-  holo[3] = holo[holo[2]] * 2;
+  var x: char;
+  x = 'r';
 }

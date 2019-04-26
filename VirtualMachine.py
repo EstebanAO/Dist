@@ -92,7 +92,10 @@ class VirtualMachine:
 
     def cast_type(self, direction, value):
         if direction < LIMIT_G_INT:
-            return value[1]
+            if len(value) == 1:
+                return value
+            else:
+                return value[1]
         elif direction < LIMIT_G_BOOL:
             return int(value)
         elif direction < LIMIT_G_FLOAT:
@@ -100,7 +103,10 @@ class VirtualMachine:
         elif direction < LIMIT_L_CHAR:
             return float(value)
         elif direction < LIMIT_L_INT:
-            return value[1]
+            if len(value) == 1:
+                return value
+            else:
+                return value[1]
         elif direction < LIMIT_L_BOOL:
             return int(value)
         elif direction < LIMIT_L_FLOAT:
@@ -108,7 +114,10 @@ class VirtualMachine:
         elif direction < LIMIT_C_CHAR:
             return float(value)
         elif direction < LIMIT_C_INT:
-            return value[1]
+            if len(value) == 1:
+                return value
+            else:
+                return value[1]
         elif direction < LIMIT_C_BOOL:
             return int(value)
         elif direction < LIMIT_C_FLOAT:
@@ -119,6 +128,8 @@ class VirtualMachine:
             return value[1:-1]
 
     def get_direction_type(self, direction):
+        if type(direction) == str:
+            return self.get_direction_type(self.get_variable_value(int(direction)))
         direction = int(direction)
         if direction < LIMIT_G_INT:
             return CHAR
@@ -177,10 +188,10 @@ class VirtualMachine:
             index_type = int(direction / MEMORY_RANGE) - 4
             index_limit = direction % MEMORY_RANGE
             self.generate_memory_local(index_type, index_limit)
+
             self.local[-1][index_type][index_limit] = '@'
 
     def set_variable_value(self, direction, value):
-        #print('set', direction)
         if type(direction) == str:
             direction = self.get_variable_value(int(direction))
 

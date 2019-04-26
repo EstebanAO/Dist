@@ -450,7 +450,7 @@ class Compiler:
             raise NameError('Variable: ', id, ' does not exist in context')
         #print(self.p_values)
         value = self.p_values.pop()
-        temp_direction = self.get_variable_direction(type)
+        temp_direction = self.get_variable_direction(INT)
         print(" >> DIM1: ", dim_one);
         self.quadruples.append([VER, value, None, dim_one])
         self.current_cte_type = INT
