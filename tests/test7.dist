@@ -1,0 +1,12 @@
+program test7;
+
+var arr[10]:float;
+main{
+  arr[3] = 5.5;
+  arr[2] = 10.1;
+  arr[6] = arr[3] * arr[2];
+  print(arr[6]);
+}
+
+// resultados esperado
+// 55.55

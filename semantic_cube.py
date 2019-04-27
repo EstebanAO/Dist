@@ -1,24 +1,5 @@
-INT = 'int'
-FLOAT = 'float'
-CHAR = 'char'
-BOOL = 'bool'
-PLUS = '+'
-MINUS = '-'
-MULT = '*'
-DIV = '/'
-EQU = '=='
-GREATER = '>'
-GREATER_EQ = '>='
-LESS = '<'
-LESS_EQ = '<='
-DIFF = '!='
-AND = '&&'
-OR = '||'
-ASSIGN = '='
-ERROR = 'error'
-
-def get_semantic_cube():
-    sem_cube = {
+from tokens import *
+SEM_CUBE = {
         INT: {
             INT:{
                 PLUS : INT,
@@ -81,7 +62,6 @@ def get_semantic_cube():
                 ASSIGN : ERROR
             }
         },
-
         FLOAT: {
             FLOAT:{
                 PLUS : FLOAT,
@@ -269,4 +249,3 @@ def get_semantic_cube():
             }
         }
     }
-    return sem_cube

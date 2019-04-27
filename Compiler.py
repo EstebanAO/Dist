@@ -1,7 +1,7 @@
 import pickle
 import tokens
 from collections import deque
-from semantic_cube import get_semantic_cube
+from semantic_cube import SEM_CUBE
 
 LIMIT_G_CHAR = 0
 LIMIT_G_INT = 40000
@@ -114,7 +114,6 @@ class Compiler:
         self.functions[function_name] = {tokens.TYPE: "", tokens.VARS: {}, tokens.PARAMS: [], tokens.START: len(self.quadruples)}
 
     def update_direction_counter(self, type, count):
-
         if type == tokens.CHAR:
             if self.current_function == tokens.GLOBAL:
                 if self.g_char + count >= LIMIT_G_INT:
@@ -193,19 +192,14 @@ class Compiler:
                 print("      Dim 1    : ", data[2])
                 print("      Dim 2    : ", data[3])
 
-
-
     # Quadruples logic
     #  arrVar [valor, tipoValor, tipoEstructura, pos1, pos2 ]
     def push_variable_data(self, id):
-        if id in self.functions[self.current_function][tokens.VARS]:
-            variable = self.functions[self.current_function][tokens.VARS][id]
-            self.p_values.append(variable[1])
-        elif id in self.functions[tokens.GLOBAL][tokens.VARS]:
-            variable = self.functions[tokens.GLOBAL][tokens.VARS][id]
-            self.p_values.append(variable[1])
-        else:
+        var_context = self.get_variable_context(id)
+        if var_context == None:
             raise NameError('Variable: ', id, ' does not exist in context')
+        variable = self.functions[var_context][tokens.VARS][id]
+        self.p_values.append(variable[1])
 
     def push_constant_data(self, value):
         if self.current_cte_type == tokens.INT:
@@ -268,24 +262,24 @@ class Compiler:
         if len(self.p_operators) == 0:
             return
         if hierarchy == tokens.PLUS:
-            array_symbol = ['+', '-']
+            array_symbol = [tokens.PLUS, tokens.MINUS]
         elif hierarchy == tokens.MULT:
-            array_symbol = ['*', '/']
+            array_symbol = [tokens.MULT, tokens.DIV]
         elif hierarchy == tokens.GREATER:
-            array_symbol = ['>', '>=', '<', '<=', '==', '!=']
+            array_symbol = [tokens.GREATER, tokens.GREATER_EQ, tokens.LESS, tokens.LESS_EQ, tokens.EQU, tokens.DIFF]
         elif hierarchy == tokens.AND:
-            array_symbol = ['&&']
+            array_symbol = [tokens.AND]
         elif hierarchy == tokens.OR:
-            array_symbol = ['||']
+            array_symbol = [tokens.OR]
 
-        top = self.p_operators[ -1 ]
+        top = self.p_operators[-1]
         if top in array_symbol:
             right_operand = self.p_values.pop()
             left_operand = self.p_values.pop()
             operator = self.p_operators.pop()
             type_right_operand = self.get_direction_type(right_operand)
             type_left_operand = self.get_direction_type(left_operand)
-            new_type = get_semantic_cube()[type_right_operand][type_left_operand][operator]
+            new_type = SEM_CUBE[type_right_operand][type_left_operand][operator]
             if new_type == tokens.ERROR:
                 raise NameError('Type Mismatch Error: ', right_operand[1] , ' does not match ' , left_operand[1])
             new_direction = self.get_variable_direction(new_type)
@@ -293,20 +287,17 @@ class Compiler:
             self.p_values.append(new_direction)
 
     def get_variable(self, id):
-        if id in self.functions[self.current_function][tokens.VARS]:
-            variable = self.functions[self.current_function][tokens.VARS][id]
-            return variable[1]
-        elif id in self.functions[tokens.GLOBAL][tokens.VARS]:
-            variable = self.functions[tokens.GLOBAL][tokens.VARS][id]
-            return variable[1]
-        else:
+        var_context = self.get_variable_context(id)
+        if var_context == None:
             raise NameError('Variable: ', id, ' does not exist in context')
+        variable = self.functions[var_context][tokens.VARS][id]
+        return variable[1]
 
     def generate_assign_quadruple(self, to_assign_direction):
         assign_value_direction = self.p_values.pop()
         to_assign_type = self.get_direction_type(to_assign_direction)
         assign_value_type = self.get_direction_type(assign_value_direction)
-        new_type = get_semantic_cube()[to_assign_type][assign_value_type]
+        new_type = SEM_CUBE[to_assign_type][assign_value_type]
         if new_type == tokens.ERROR:
             raise NameError('Type Mismatch Error: ', to_assign_type , ' does not match ', assign_value_type)
         self.quadruples.append([tokens.ASSIGN, assign_value_direction, None, to_assign_direction])
@@ -318,14 +309,11 @@ class Compiler:
         self.quadruples.append([tokens.PRINT, None, None, self.p_values.pop()])
 
     def generate_read_quadruple(self, id):
-        if id in self.functions[self.current_function][tokens.VARS]:
-            direction = self.functions[self.current_function][tokens.VARS][id][1]
-            self.quadruples.append([tokens.READ, None, None, direction])
-        elif id in self.functions[tokens.GLOBAL][tokens.VARS]:
-            direction = self.functions[tokens.GLOBAL][tokens.VARS][id][1]
-            self.quadruples.append([tokens.READ, None, None, direction])
-        else:
+        var_context = self.get_variable_context(id)
+        if var_context == None:
             raise NameError('Variable: ', id, ' does not exist in context')
+        direction = self.functions[var_context][tokens.VARS][id][1]
+        self.quadruples.append([tokens.READ, None, None, direction])
 
     #Conditionals
     def generate_return_quadruple(self):
@@ -366,7 +354,6 @@ class Compiler:
         var_direction = variable[1]
         argument = self.p_values.pop()
         argument_type = self.get_direction_type(argument)
-    #    print(argument_type, var_type)
         if (argument_type != var_type):
             raise TypeError('Argument type error')
         self.quadruples.append([tokens.ASSIGN, argument, None, var_direction])
@@ -385,38 +372,41 @@ class Compiler:
     def add_fake_bottom(self):
         self.p_operators.append('(')
 
-    def access_array_dim_one(self, id):
-        #id = self.id_assign
-        print("Accessing array", id)
-        if id in self.functions[self.current_function][tokens.VARS]:
-            if self.functions[self.current_function][tokens.VARS][id][2] == None:
-                raise TypeError('Variable: ', id, ' is not a one dimention array')
-            if self.functions[self.current_function][tokens.VARS][id][3] != None:
-                raise TypeError('Variable: ', id, ' is a two dimention array')
-            dim_one = self.functions[self.current_function][tokens.VARS][id][2][0]
-            direction = self.functions[self.current_function][tokens.VARS][id][1]
-            type = self.functions[self.current_function][tokens.VARS][id][0]
-        elif id in self.functions[tokens.GLOBAL][tokens.VARS]:
-            if self.functions[tokens.GLOBAL][tokens.VARS][id][2] == None:
-                raise TypeError('Variable: ', id, ' is not a one dimention array')
-            if self.functions[tokens.GLOBAL][tokens.VARS][id][3] != None:
-                raise TypeError('Variable: ', id, ' is a two dimention array')
-            dim_one = self.functions[tokens.GLOBAL][tokens.VARS][id][2][0]
-            direction = self.functions[tokens.GLOBAL][tokens.VARS][id][1]
-            type = self.functions[tokens.GLOBAL][tokens.VARS][id][0]
+    # function that receives a variable id AND returns its corresponding context
+    def get_variable_context(self, var_id):
+        if var_id in self.functions[self.current_function][tokens.VARS]:
+            return self.current_function
+        elif var_id in self.functions[tokens.GLOBAL][tokens.VARS]:
+            return tokens.GLOBAL
         else:
+            return None
+
+    def access_array_dim_one(self, id):
+        array_context = self.get_variable_context(id)
+        if array_context == None:
             raise NameError('Variable: ', id, ' does not exist in context')
-        #print(self.p_values)
+        self.verify_one_dim_array(array_context, id)
+
+        dim_one = self.functions[array_context][tokens.VARS][id][2][0]
+        direction = self.functions[array_context][tokens.VARS][id][1]
+        type = self.functions[array_context][tokens.VARS][id][0]
+
         value = self.p_values.pop()
         temp_direction = self.get_variable_direction(tokens.INT)
-        print(" >> DIM1: ", dim_one);
         self.quadruples.append([tokens.VER, value, None, dim_one])
         self.current_cte_type = tokens.INT
         self.push_constant_data(direction)
         constant = self.p_values.pop()
         self.quadruples.append([tokens.PLUS, value, constant, temp_direction])
-        self.p_values.append(str(temp_direction))
-        self.p_operators.pop()
+        self.p_values.append(str(temp_direction)) # push pointer to array position
+        self.p_operators.pop() # pop fake bottom
+
+    # function that raises an error when the variable is not a one dimension array
+    def verify_one_dim_array(self, function_id, var_id):
+        if self.functions[function_id][tokens.VARS][var_id][2] == None:
+            raise TypeError('Variable: ', var_id, ' is not an array')
+        if self.functions[function_id][tokens.VARS][var_id][3] != None:
+            raise TypeError('Variable: ', var_id, ' is a two dimention array')
 
     #Functions
     def generate_end_proc(self):
