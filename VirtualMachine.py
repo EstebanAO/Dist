@@ -1,47 +1,7 @@
-import pickle
 import sys
-
+import pickle
+import tokens
 from collections import deque
-VAR = "var"
-CTE = "cte"
-FUN = "fun"
-ARR = "arr"
-GLOBAL = "global"
-TYPE = "tipo"
-VARS = "vars"
-PARAMS = 'params'
-VOID = "void"
-INT = 'int'
-FLOAT = 'float'
-CHAR = 'char'
-BOOL = 'bool'
-STRING = 'str'
-PLUS = '+'
-MINUS = '-'
-MULT = '*'
-DIV = '/'
-EQU = '=='
-GREATER = '>'
-GREATER_EQ = '>='
-LESS = '<'
-LESS_EQ = '<='
-DIFF = '!='
-AND = '&&'
-OR = '||'
-ASSIGN = '='
-ERROR = 'error'
-PRINT = 'print'
-PRINT_NEW_LINE = 'print_new_line'
-READ = 'read'
-RETURN = 'return'
-GO_TO_F = 'go_to_f'
-GO_TO = 'go_to'
-START = 'start'
-END_PROC = 'end_proc'
-ERA = 'era'
-GO_SUB = 'go_sub'
-FILL_ARRAY = 'fill_array'
-VER = 'ver'
 
 LIMIT_G_CHAR = 0
 LIMIT_G_INT = 40000
@@ -132,31 +92,31 @@ class VirtualMachine:
             return self.get_direction_type(self.get_variable_value(int(direction)))
         direction = int(direction)
         if direction < LIMIT_G_INT:
-            return CHAR
+            return tokens.CHAR
         elif direction < LIMIT_G_BOOL:
-            return INT
+            return tokens.INT
         elif direction < LIMIT_G_FLOAT:
-            return BOOL
+            return tokens.BOOL
         elif direction < LIMIT_L_CHAR:
-            return FLOAT
+            return tokens.FLOAT
         elif direction < LIMIT_L_INT:
-            return CHAR
+            return tokens.CHAR
         elif direction < LIMIT_L_BOOL:
-            return INT
+            return tokens.INT
         elif direction < LIMIT_L_FLOAT:
-            return BOOL
+            return tokens.BOOL
         elif direction < LIMIT_C_CHAR:
-            return FLOAT
+            return tokens.FLOAT
         elif direction < LIMIT_C_INT:
-            return CHAR
+            return tokens.CHAR
         elif direction < LIMIT_C_BOOL:
-            return INT
+            return tokens.INT
         elif direction < LIMIT_C_FLOAT:
-            return BOOL
+            return tokens.BOOL
         elif direction < LIMIT_C_STRING:
-            return FLOAT
+            return tokens.FLOAT
         else:
-            return STRING
+            return tokens.STRING
 
     def generate_memory_global(self, index_type, index_limit):
         global_size = len(self.global_var[index_type])
@@ -215,13 +175,13 @@ class VirtualMachine:
         type = self.get_direction_type(direction)
         try:
             val = input()
-            if type == INT:
+            if type == tokens.INT:
                 self.set_variable_value(direction, int(val))
-            elif type == FLOAT:
+            elif type == tokens.FLOAT:
                 self.set_variable_value(direction, float(val))
-            elif type == CHAR:
+            elif type == tokens.CHAR:
                 self.set_variable_value(direction, '\'' + str(val)[0] + '\'')
-            elif type == BOOL:
+            elif type == tokens.BOOL:
                 if val == 'true':
                     val = True
                 elif val == 'false':
@@ -242,50 +202,50 @@ class VirtualMachine:
                 value_left = self.get_variable_value(quad[1])
             if quad[2] != None:
                 value_right = self.get_variable_value(quad[2])
-            if (quad[0] == PLUS):
+            if (quad[0] == tokens.PLUS):
                 self.set_variable_value(quad[3], value_left + value_right)
-            elif (quad[0] == MINUS):
+            elif (quad[0] == tokens.MINUS):
                 self.set_variable_value(quad[3], value_left - value_right)
-            elif (quad[0] == MULT):
+            elif (quad[0] == tokens.MULT):
                 self.set_variable_value(quad[3], value_left * value_right)
-            elif (quad[0] == DIV):
+            elif (quad[0] == tokens.DIV):
                 val = value_left / value_right
-                if self.get_direction_type(quad[1]) == INT and self.get_direction_type(quad[2]) == INT:
+                if self.get_direction_type(quad[1]) == tokens.INT and self.get_direction_type(quad[2]) == tokens.INT:
                     val = int(value_left / value_right)
                 self.set_variable_value(quad[3], val)
-            elif (quad[0] == ASSIGN):
-                if self.get_direction_type(quad[3]) == INT:
+            elif (quad[0] == tokens.ASSIGN):
+                if self.get_direction_type(quad[3]) == tokens.INT:
                     value_left = int(value_left)
                 self.set_variable_value(quad[3], value_left)
-            elif (quad[0] == EQU):
+            elif (quad[0] == tokens.EQU):
             #    print(value_left == value_right)
                 self.set_variable_value(quad[3], value_left == value_right)
-            elif (quad[0] == GREATER):
+            elif (quad[0] == tokens.GREATER):
                 self.set_variable_value(quad[3], value_left > value_right)
-            elif (quad[0] == GREATER_EQ):
+            elif (quad[0] == tokens.GREATER_EQ):
                 self.set_variable_value(quad[3], value_left >= value_right)
-            elif (quad[0] == LESS):
+            elif (quad[0] == tokens.LESS):
                 self.set_variable_value(quad[3], value_left < value_right)
-            elif (quad[0] == LESS_EQ):
+            elif (quad[0] == tokens.LESS_EQ):
                 self.set_variable_value(quad[3], value_left <= value_right)
-            elif (quad[0] == AND):
+            elif (quad[0] == tokens.AND):
                 self.set_variable_value(quad[3], value_left and value_right)
-            elif (quad[0] == OR):
+            elif (quad[0] == tokens.OR):
                 self.set_variable_value(quad[3], value_left or value_right)
-            elif (quad[0] == PRINT):
+            elif (quad[0] == tokens.PRINT):
                 print_value = self.get_variable_value(quad[3])
                 if type(print_value) == bool:
                     sys.stdout.write('true' if print_value else 'false')
                 else:
                     sys.stdout.write(str(print_value))
-            elif (quad[0] == PRINT_NEW_LINE):
+            elif (quad[0] == tokens.PRINT_NEW_LINE):
                 print_value = ''
                 print(print_value)
-            elif (quad[0] == READ):
+            elif (quad[0] == tokens.READ):
                 self.read_function(quad[3])
-            elif (quad[0] == FILL_ARRAY):
+            elif (quad[0] == tokens.FILL_ARRAY):
                 self.fill_array(quad[3])
-            elif (quad[0] == VER):
+            elif (quad[0] == tokens.VER):
                 if value_left > quad[3] - 1:
                     raise IndexError('Index error ', value_left, ' ', quad[3] - 1)
             index += 1
