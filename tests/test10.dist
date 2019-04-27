@@ -2,5 +2,4 @@ program test10;
 main {
     var arr[4]:int;
     arr[1] = 2;
-
 }

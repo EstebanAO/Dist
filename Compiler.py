@@ -335,14 +335,14 @@ class Compiler:
     #Conditionals
     def generate_return_quadruple(self):
         direction = self.p_values[-1]
-        self.quadruples.append([tokens.READ, None, None, direction])
+        self.quadruples.append([tokens.RETURN, None, None, direction])
 
     def generate_go_to_f(self):
         self.add_breadcrumb()
         condition = self.p_values.pop()
         if self.get_direction_type(condition) != tokens.BOOL:
             raise TypeError('If statements must evaluate boolean values')
-        self.quadruples.append([tokens.READ, condition, None, None])
+        self.quadruples.append([tokens.GO_TO_F, condition, None, None])
 
     def complete_go_to_f(self):
         quad_index = self.p_jumps.pop()
@@ -352,7 +352,7 @@ class Compiler:
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index][3] = len(self.quadruples) + 1
         self.add_breadcrumb()
-        self.quadruples.append([tokens.READ, None, None, None])
+        self.quadruples.append([tokens.GO_TO, None, None, None])
 
     def add_breadcrumb(self):
         self.p_jumps.append(len(self.quadruples))
@@ -361,7 +361,7 @@ class Compiler:
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index][3] = len(self.quadruples) + 1
         quad_index = self.p_jumps.pop()
-        self.quadruples.append([tokens.READ, None, None, quad_index])
+        self.quadruples.append([tokens.GO_TO, None, None, quad_index])
 
     def assign_param_direction(self, function_call):
         var_name = self.functions[function_call][tokens.PARAMS][self.c_function_params]
