@@ -1,38 +1,25 @@
 import pickle
 import tokens
+import limits
 from collections import deque
 from semantic_cube import SEM_CUBE
-
-LIMIT_G_CHAR = 0
-LIMIT_G_INT = 40000
-LIMIT_G_BOOL = 80000
-LIMIT_G_FLOAT = 120000
-LIMIT_L_CHAR = 160000
-LIMIT_L_INT = 200000
-LIMIT_L_BOOL = 240000
-LIMIT_L_FLOAT = 280000
-LIMIT_C_CHAR = 320000
-LIMIT_C_INT = 360000
-LIMIT_C_BOOL = 400000
-LIMIT_C_FLOAT = 440000
-LIMIT_C_STRING = 480000
 
 class Compiler:
     def __init__(self):
         #Counters
-        self.g_char = LIMIT_G_CHAR - 1
-        self.g_int = LIMIT_G_INT - 1
-        self.g_bool = LIMIT_G_BOOL - 1
-        self.g_float = LIMIT_G_FLOAT - 1
-        self.l_char = LIMIT_L_CHAR - 1
-        self.l_int = LIMIT_L_INT - 1
-        self.l_bool = LIMIT_L_BOOL - 1
-        self.l_float = LIMIT_L_FLOAT - 1
-        self.c_char = LIMIT_C_CHAR - 1
-        self.c_int = LIMIT_C_INT - 1
-        self.c_bool = LIMIT_C_BOOL - 1
-        self.c_float = LIMIT_C_FLOAT - 1
-        self.c_string = LIMIT_C_STRING - 1
+        self.g_char = limits.G_CHAR - 1
+        self.g_int = limits.G_INT - 1
+        self.g_bool = limits.G_BOOL - 1
+        self.g_float = limits.G_FLOAT - 1
+        self.l_char = limits.L_CHAR - 1
+        self.l_int = limits.L_INT - 1
+        self.l_bool = limits.L_BOOL - 1
+        self.l_float = limits.L_FLOAT - 1
+        self.c_char = limits.C_CHAR - 1
+        self.c_int = limits.C_INT - 1
+        self.c_bool = limits.C_BOOL - 1
+        self.c_float = limits.C_FLOAT - 1
+        self.c_string = limits.C_STRING - 1
 
         # Functions and variables tables
         self.program_name = ''
@@ -104,10 +91,10 @@ class Compiler:
             self.functions[self.current_function][tokens.VARS][name] = [type, self.get_variable_direction(type), None, None]
 
     def switch_context(self, function_name):
-        self.l_char = LIMIT_L_CHAR - 1
-        self.l_int = LIMIT_L_INT - 1
-        self.l_bool = LIMIT_L_BOOL - 1
-        self.l_float = LIMIT_L_FLOAT - 1
+        self.l_char = limits.L_CHAR - 1
+        self.l_int = limits.L_INT - 1
+        self.l_bool = limits.L_BOOL - 1
+        self.l_float = limits.L_FLOAT - 1
         self.current_function = function_name
         if function_name in self.functions:
             raise NameError('Function ', function_name, ' already exists')
@@ -116,38 +103,38 @@ class Compiler:
     def update_direction_counter(self, type, count):
         if type == tokens.CHAR:
             if self.current_function == tokens.GLOBAL:
-                if self.g_char + count >= LIMIT_G_INT:
+                if self.g_char + count >= limits.G_INT:
                     raise MemoryError('Memory error')
                 self.g_char += count
             else:
-                if self.l_char + count >= LIMIT_L_INT:
+                if self.l_char + count >= limits.L_INT:
                     raise MemoryError('Memory error')
                 self.l_char += count
         elif type == tokens.INT:
             if self.current_function == tokens.GLOBAL:
-                if self.g_int + count >= LIMIT_G_BOOL:
+                if self.g_int + count >= limits.G_BOOL:
                     raise MemoryError('Memory error')
                 self.g_int += count
             else:
-                if self.l_int + count >= LIMIT_L_BOOL:
+                if self.l_int + count >= limits.L_BOOL:
                     raise MemoryError('Memory error')
                 self.l_int += count
         elif type == tokens.BOOL:
             if self.current_function == tokens.GLOBAL:
-                if self.g_bool + count >= LIMIT_G_FLOAT:
+                if self.g_bool + count >= limits.G_FLOAT:
                     raise MemoryError('Memory error')
                 self.g_bool += count
             else:
-                if self.l_bool + count >= LIMIT_L_FLOAT:
+                if self.l_bool + count >= limits.L_FLOAT:
                     raise MemoryError('Memory error')
                 self.l_bool += count
         elif type == tokens.FLOAT:
             if self.current_function == tokens.GLOBAL:
-                if self.g_float + count >= LIMIT_L_CHAR:
+                if self.g_float + count >= limits.L_CHAR:
                     raise MemoryError('Memory error')
                 self.g_float += count
             else:
-                if self.l_float + count >= LIMIT_C_CHAR:
+                if self.l_float + count >= limits.C_CHAR:
                     raise MemoryError('Memory error')
                 self.l_float += count
 
@@ -231,29 +218,29 @@ class Compiler:
 
     def get_direction_type(self, direction):
         direction = int(direction)
-        if direction < LIMIT_G_INT:
+        if direction < limits.G_INT:
             return tokens.CHAR
-        elif direction < LIMIT_G_BOOL:
+        elif direction < limits.G_BOOL:
             return tokens.INT
-        elif direction < LIMIT_G_FLOAT:
+        elif direction < limits.G_FLOAT:
             return tokens.BOOL
-        elif direction < LIMIT_L_CHAR:
+        elif direction < limits.L_CHAR:
             return tokens.FLOAT
-        elif direction < LIMIT_L_INT:
+        elif direction < limits.L_INT:
             return tokens.CHAR
-        elif direction < LIMIT_L_BOOL:
+        elif direction < limits.L_BOOL:
             return tokens.INT
-        elif direction < LIMIT_L_FLOAT:
+        elif direction < limits.L_FLOAT:
             return tokens.BOOL
-        elif direction < LIMIT_C_CHAR:
+        elif direction < limits.C_CHAR:
             return tokens.FLOAT
-        elif direction < LIMIT_C_INT:
+        elif direction < limits.C_INT:
             return tokens.CHAR
-        elif direction < LIMIT_C_BOOL:
+        elif direction < limits.C_BOOL:
             return tokens.INT
-        elif direction < LIMIT_C_FLOAT:
+        elif direction < limits.C_FLOAT:
             return tokens.BOOL
-        elif direction < LIMIT_C_STRING:
+        elif direction < limits.C_STRING:
             return tokens.FLOAT
         else:
             return tokens.STRING
@@ -372,7 +359,7 @@ class Compiler:
     def add_fake_bottom(self):
         self.p_operators.append('(')
 
-    # function that receives a variable id AND returns its corresponding context
+    # function that receives a variable id and returns its corresponding context
     def get_variable_context(self, var_id):
         if var_id in self.functions[self.current_function][tokens.VARS]:
             return self.current_function
@@ -380,6 +367,13 @@ class Compiler:
             return tokens.GLOBAL
         else:
             return None
+
+    # function that raises an error when the variable is not a one dimension array
+    def verify_one_dim_array(self, function_id, var_id):
+        if self.functions[function_id][tokens.VARS][var_id][2] == None:
+            raise TypeError('Variable: ', var_id, ' is not an array')
+        if self.functions[function_id][tokens.VARS][var_id][3] != None:
+            raise TypeError('Variable: ', var_id, ' is a two dimention array')
 
     def access_array_dim_one(self, id):
         array_context = self.get_variable_context(id)
@@ -400,13 +394,6 @@ class Compiler:
         self.quadruples.append([tokens.PLUS, value, constant, temp_direction])
         self.p_values.append(str(temp_direction)) # push pointer to array position
         self.p_operators.pop() # pop fake bottom
-
-    # function that raises an error when the variable is not a one dimension array
-    def verify_one_dim_array(self, function_id, var_id):
-        if self.functions[function_id][tokens.VARS][var_id][2] == None:
-            raise TypeError('Variable: ', var_id, ' is not an array')
-        if self.functions[function_id][tokens.VARS][var_id][3] != None:
-            raise TypeError('Variable: ', var_id, ' is a two dimention array')
 
     #Functions
     def generate_end_proc(self):

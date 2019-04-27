@@ -1,22 +1,8 @@
 import sys
 import pickle
 import tokens
+import limits
 from collections import deque
-
-LIMIT_G_CHAR = 0
-LIMIT_G_INT = 40000
-LIMIT_G_BOOL = 80000
-LIMIT_G_FLOAT = 120000
-LIMIT_L_CHAR = 160000
-LIMIT_L_INT = 200000
-LIMIT_L_BOOL = 240000
-LIMIT_L_FLOAT = 280000
-LIMIT_C_CHAR = 320000
-LIMIT_C_INT = 360000
-LIMIT_C_BOOL = 400000
-LIMIT_C_FLOAT = 440000
-LIMIT_C_STRING = 480000
-MEMORY_RANGE = 40000
 
 class VirtualMachine:
     def __init__(self):
@@ -38,10 +24,10 @@ class VirtualMachine:
     #    print(direction)
         if type(direction) == str:
             direction = self.get_variable_value(int(direction))
-        if direction < LIMIT_L_CHAR:
-            return self.global_var[int(direction / MEMORY_RANGE)][direction % MEMORY_RANGE]
-        elif direction < LIMIT_C_CHAR:
-            return self.local[-1][int(direction / MEMORY_RANGE) - 4][direction % MEMORY_RANGE]
+        if direction < limits.L_CHAR:
+            return self.global_var[int(direction / limits.MEMORY_RANGE)][direction % limits.MEMORY_RANGE]
+        elif direction < limits.C_CHAR:
+            return self.local[-1][int(direction / limits.MEMORY_RANGE) - 4][direction % limits.MEMORY_RANGE]
         else:
             return self.constants[direction]
 
@@ -51,38 +37,38 @@ class VirtualMachine:
 
 
     def cast_type(self, direction, value):
-        if direction < LIMIT_G_INT:
+        if direction < limits.G_INT:
             if len(value) == 1:
                 return value
             else:
                 return value[1]
-        elif direction < LIMIT_G_BOOL:
+        elif direction < limits.G_BOOL:
             return int(value)
-        elif direction < LIMIT_G_FLOAT:
+        elif direction < limits.G_FLOAT:
             return value if type(value) == bool else value == 'true'
-        elif direction < LIMIT_L_CHAR:
+        elif direction < limits.L_CHAR:
             return float(value)
-        elif direction < LIMIT_L_INT:
+        elif direction < limits.L_INT:
             if len(value) == 1:
                 return value
             else:
                 return value[1]
-        elif direction < LIMIT_L_BOOL:
+        elif direction < limits.L_BOOL:
             return int(value)
-        elif direction < LIMIT_L_FLOAT:
+        elif direction < limits.L_FLOAT:
             return value if type(value) == bool else value == 'true'
-        elif direction < LIMIT_C_CHAR:
+        elif direction < limits.C_CHAR:
             return float(value)
-        elif direction < LIMIT_C_INT:
+        elif direction < limits.C_INT:
             if len(value) == 1:
                 return value
             else:
                 return value[1]
-        elif direction < LIMIT_C_BOOL:
+        elif direction < limits.C_BOOL:
             return int(value)
-        elif direction < LIMIT_C_FLOAT:
+        elif direction < limits.C_FLOAT:
             return value if type(value) == bool else value == 'true'
-        elif direction < LIMIT_C_STRING:
+        elif direction < limits.C_STRING:
             return float(value)
         else:
             return value[1:-1]
@@ -91,29 +77,29 @@ class VirtualMachine:
         if type(direction) == str:
             return self.get_direction_type(self.get_variable_value(int(direction)))
         direction = int(direction)
-        if direction < LIMIT_G_INT:
+        if direction < limits.G_INT:
             return tokens.CHAR
-        elif direction < LIMIT_G_BOOL:
+        elif direction < limits.G_BOOL:
             return tokens.INT
-        elif direction < LIMIT_G_FLOAT:
+        elif direction < limits.G_FLOAT:
             return tokens.BOOL
-        elif direction < LIMIT_L_CHAR:
+        elif direction < limits.L_CHAR:
             return tokens.FLOAT
-        elif direction < LIMIT_L_INT:
+        elif direction < limits.L_INT:
             return tokens.CHAR
-        elif direction < LIMIT_L_BOOL:
+        elif direction < limits.L_BOOL:
             return tokens.INT
-        elif direction < LIMIT_L_FLOAT:
+        elif direction < limits.L_FLOAT:
             return tokens.BOOL
-        elif direction < LIMIT_C_CHAR:
+        elif direction < limits.C_CHAR:
             return tokens.FLOAT
-        elif direction < LIMIT_C_INT:
+        elif direction < limits.C_INT:
             return tokens.CHAR
-        elif direction < LIMIT_C_BOOL:
+        elif direction < limits.C_BOOL:
             return tokens.INT
-        elif direction < LIMIT_C_FLOAT:
+        elif direction < limits.C_FLOAT:
             return tokens.BOOL
-        elif direction < LIMIT_C_STRING:
+        elif direction < limits.C_STRING:
             return tokens.FLOAT
         else:
             return tokens.STRING
@@ -139,14 +125,14 @@ class VirtualMachine:
             local_size += 1
 
     def fill_array(self, direction):
-        if direction < LIMIT_L_CHAR:
-            index_type = int(direction / MEMORY_RANGE)
-            index_limit = direction % MEMORY_RANGE
+        if direction < limits.L_CHAR:
+            index_type = int(direction / limits.MEMORY_RANGE)
+            index_limit = direction % limits.MEMORY_RANGE
             self.generate_memory_global(index_type, index_limit)
             self.global_var[index_type][index_limit] = '@'
         else:
-            index_type = int(direction / MEMORY_RANGE) - 4
-            index_limit = direction % MEMORY_RANGE
+            index_type = int(direction / limits.MEMORY_RANGE) - 4
+            index_limit = direction % limits.MEMORY_RANGE
             self.generate_memory_local(index_type, index_limit)
 
             self.local[-1][index_type][index_limit] = '@'
@@ -155,14 +141,14 @@ class VirtualMachine:
         if type(direction) == str:
             direction = self.get_variable_value(int(direction))
 
-        if direction < LIMIT_L_CHAR:
-            index_type = int(direction / MEMORY_RANGE)
-            index_limit = direction % MEMORY_RANGE
+        if direction < limits.L_CHAR:
+            index_type = int(direction / limits.MEMORY_RANGE)
+            index_limit = direction % limits.MEMORY_RANGE
             self.generate_memory_global(index_type, index_limit)
             self.global_var[index_type][index_limit] = self.cast_type(direction, value)
         else:
-            index_type = int(direction / MEMORY_RANGE) - 4
-            index_limit = direction % MEMORY_RANGE
+            index_type = int(direction / limits.MEMORY_RANGE) - 4
+            index_limit = direction % limits.MEMORY_RANGE
             self.generate_memory_local(index_type, index_limit)
             self.local[-1][index_type][index_limit] = self.cast_type(direction, value)
 
