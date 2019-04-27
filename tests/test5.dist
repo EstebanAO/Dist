@@ -2,7 +2,6 @@ program test5;
 
 main {
   var arr[9]:char;
-  // arr[0] = '-'; // esto causa problemas
   arr[1] = 'M';
   arr[2] = 'X';
   arr[3] = 'D';

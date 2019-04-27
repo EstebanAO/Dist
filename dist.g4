@@ -71,7 +71,7 @@ while_cycle                     : WHILE {c.add_breadcrumb()}'(' expresion ')' {c
 
  CTE_F                          : (DIGIT)+ '.' (DIGIT)+;
  CTE_I                          : (DIGIT)+;
- CTE_C                          : ('\'' LOWERCASE '\'') | ('\'' UPPERCASE '\'') | ('\'' DIGIT '\'');
+ CTE_C                          : '\'' .? '\'';
  CTE_B                       	  : ('t' 'r' 'u' 'e') | ('f' 'a' 'l' 's' 'e');
  CTE_STRING                     : '"' .*? '"';
  NULL                           : 'n' 'u' 'l' 'l';

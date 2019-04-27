@@ -15,6 +15,10 @@ class Compiler:
         self.l_int = limits.L_INT - 1
         self.l_bool = limits.L_BOOL - 1
         self.l_float = limits.L_FLOAT - 1
+        self.p_char = limits.P_CHAR - 1
+        self.p_int = limits.P_INT - 1
+        self.p_bool = limits.P_BOOL - 1
+        self.p_float = limits.P_FLOAT - 1
         self.c_char = limits.C_CHAR - 1
         self.c_int = limits.C_INT - 1
         self.c_bool = limits.C_BOOL - 1
@@ -85,6 +89,20 @@ class Compiler:
                 self.l_float += 1
                 return self.l_float
 
+    def get_pointer_direction(self, type):
+        if type == tokens.INT:
+            self.p_int += 1
+            return self.p_int
+        elif type == tokens.CHAR:
+            self.p_char += 1
+            return self.p_char
+        elif type == tokens.BOOL:
+            self.p_bool += 1
+            return self.p_bool
+        elif type == tokens.FLOAT:
+            self.p_float += 1
+            return self.p_float
+
     def add_variables(self, type):
         while (len(self.pending_ids) > 0):
             name = self.pending_ids.pop()
@@ -95,6 +113,10 @@ class Compiler:
         self.l_int = limits.L_INT - 1
         self.l_bool = limits.L_BOOL - 1
         self.l_float = limits.L_FLOAT - 1
+        self.p_char = limits.P_CHAR - 1
+        self.p_int = limits.P_INT - 1
+        self.p_bool = limits.P_BOOL - 1
+        self.p_float = limits.P_FLOAT - 1
         self.current_function = function_name
         if function_name in self.functions:
             raise NameError('Function ', function_name, ' already exists')
@@ -143,7 +165,6 @@ class Compiler:
         if dim_one < 1:
             raise IndexError('Array: ', name, ' size must be grater than zero')
         direction = self.get_variable_direction(type)
-        print(" > DIM1: ", dim_one)
         self.functions[self.current_function][tokens.VARS][name] = [type, direction, [dim_one, 0], None]
         self.update_direction_counter(type, dim_one)
         self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one])
@@ -218,29 +239,37 @@ class Compiler:
 
     def get_direction_type(self, direction):
         direction = int(direction)
-        if direction < limits.G_INT:
+        if direction < limits.G_CHAR + limits.MEMORY_RANGE:
             return tokens.CHAR
-        elif direction < limits.G_BOOL:
+        elif direction < limits.G_INT + limits.MEMORY_RANGE:
             return tokens.INT
-        elif direction < limits.G_FLOAT:
+        elif direction < limits.G_BOOL + limits.MEMORY_RANGE:
             return tokens.BOOL
-        elif direction < limits.L_CHAR:
+        elif direction < limits.G_FLOAT + limits.MEMORY_RANGE:
             return tokens.FLOAT
-        elif direction < limits.L_INT:
+        elif direction < limits.L_CHAR + limits.MEMORY_RANGE:
             return tokens.CHAR
-        elif direction < limits.L_BOOL:
+        elif direction < limits.L_INT + limits.MEMORY_RANGE:
             return tokens.INT
-        elif direction < limits.L_FLOAT:
+        elif direction < limits.L_BOOL + limits.MEMORY_RANGE:
             return tokens.BOOL
-        elif direction < limits.C_CHAR:
+        elif direction < limits.L_FLOAT + limits.MEMORY_RANGE:
             return tokens.FLOAT
-        elif direction < limits.C_INT:
+        elif direction < limits.P_CHAR + limits.MEMORY_RANGE:
             return tokens.CHAR
-        elif direction < limits.C_BOOL:
+        elif direction < limits.P_INT + limits.MEMORY_RANGE:
             return tokens.INT
-        elif direction < limits.C_FLOAT:
+        elif direction < limits.P_BOOL + limits.MEMORY_RANGE:
             return tokens.BOOL
-        elif direction < limits.C_STRING:
+        elif direction < limits.P_FLOAT + limits.MEMORY_RANGE:
+            return tokens.FLOAT
+        elif direction < limits.C_CHAR + limits.MEMORY_RANGE:
+            return tokens.CHAR
+        elif direction < limits.C_INT + limits.MEMORY_RANGE:
+            return tokens.INT
+        elif direction < limits.C_BOOL + limits.MEMORY_RANGE:
+            return tokens.BOOL
+        elif direction < limits.C_FLOAT + limits.MEMORY_RANGE:
             return tokens.FLOAT
         else:
             return tokens.STRING
@@ -266,6 +295,7 @@ class Compiler:
             operator = self.p_operators.pop()
             type_right_operand = self.get_direction_type(right_operand)
             type_left_operand = self.get_direction_type(left_operand)
+            print(left_operand," ",right_operand)
             new_type = SEM_CUBE[type_right_operand][type_left_operand][operator]
             if new_type == tokens.ERROR:
                 raise NameError('Type Mismatch Error: ', right_operand[1] , ' does not match ' , left_operand[1])
@@ -386,13 +416,14 @@ class Compiler:
         type = self.functions[array_context][tokens.VARS][id][0]
 
         value = self.p_values.pop()
-        temp_direction = self.get_variable_direction(tokens.INT)
+        temp_direction = self.get_pointer_direction(type)
+
         self.quadruples.append([tokens.VER, value, None, dim_one])
         self.current_cte_type = tokens.INT
         self.push_constant_data(direction)
         constant = self.p_values.pop()
-        self.quadruples.append([tokens.PLUS, value, constant, temp_direction])
-        self.p_values.append(str(temp_direction)) # push pointer to array position
+        self.quadruples.append([tokens.PLUS_POINTER, value, constant, temp_direction])
+        self.p_values.append(temp_direction) # push pointer to array position
         self.p_operators.pop() # pop fake bottom
 
     #Functions

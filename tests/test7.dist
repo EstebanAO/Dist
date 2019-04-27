@@ -1,11 +1,24 @@
 program test7;
 
+//var x,y:float;
 var arr[10]:float;
 main{
+
+  arr[0] = 5.5;
+  arr[1] = 10.1;
+  print(arr[0] * arr[1]);
+  /*
   arr[3] = 5.5;
   arr[2] = 10.1;
   arr[6] = arr[3] * arr[2];
   print(arr[6]);
+  print(5.5*2.2);
+  x = 6.6;
+  y = 10.4;
+  print(arr[3]);
+  print(x*y);
+  print(arr[3] * arr[2]);
+  */
 }
 
 // resultados esperado

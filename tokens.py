@@ -38,3 +38,4 @@ ERA = 'era'
 GO_SUB = 'go_sub'
 FILL_ARRAY = 'fill_array'
 VER = 'ver'
+PLUS_POINTER = "++"

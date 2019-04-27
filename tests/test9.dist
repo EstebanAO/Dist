@@ -1,0 +1,7 @@
+program test9;
+main {
+  var x, y : int;
+  x = 4.9;
+  y = 11.9;
+  print(x * y);
+}
