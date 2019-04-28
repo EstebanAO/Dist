@@ -1,0 +1,22 @@
+program test12;
+
+var cont:int;
+main {
+  var sum:float;
+  var arr[5]:int;
+  sum = 0.0;
+  cont = 0;
+  arr[0] = 97;
+  arr[1] = 80;
+  arr[2] = 90;
+  arr[3] = 74;
+  arr[4] = 82;
+  while (cont < 5) {
+    sum = sum + arr[cont];
+    cont = cont + 1;
+  }
+  print("promedio: ", sum / 5);
+}
+
+// resultado esperado
+// promedio: 84.6

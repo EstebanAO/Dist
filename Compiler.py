@@ -187,13 +187,14 @@ class Compiler:
 
     def add_param(self, name):
         self.current_variable = name
-        self.functions[self.current_function][tokens.VARS][self.current_variable] = ['', None]
+        self.functions[self.current_function][tokens.VARS][self.current_variable] = ['', None, None, None]
         self.functions[self.current_function][tokens.PARAMS].append(name)
 
     def print_tables(self):
         for func, value in self.functions.items():
             print('Funcion: ', func, value[tokens.TYPE])
             for var, data in value[tokens.VARS].items():
+                print("data ", data)
                 print("   ", var)
                 print("      Tipo     : ", data[0])
                 print("      Dirección: ", data[1])
@@ -323,7 +324,11 @@ class Compiler:
         self.quadruples.append([tokens.PRINT_NEW_LINE, None, None, None])
 
     def generate_print_quadruple(self):
+        print("lo p hay", self.p_values)
         self.quadruples.append([tokens.PRINT, None, None, self.p_values.pop()])
+
+    def generate_read_array_quadruple(self):
+        self.quadruples.append([tokens.READ, None, None, self.p_values.pop()])
 
     def generate_read_quadruple(self, id):
         var_context = self.get_variable_context(id)
@@ -347,6 +352,14 @@ class Compiler:
     def complete_go_to_f(self):
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index][3] = len(self.quadruples)
+
+    def generate_go_to_main(self):
+        self.quadruples.append([tokens.GO_TO, None, None, None])
+        self.p_jumps.append(len(self.quadruples))
+
+    def complete_go_to_main(self):
+        quad_index = self.p_jumps.pop()
+        self.quadruples[quad_index-1][3] = len(self.quadruples)
 
     def generate_else_go_to(self):
         quad_index = self.p_jumps.pop()
@@ -405,6 +418,13 @@ class Compiler:
         if self.functions[function_id][tokens.VARS][var_id][3] != None:
             raise TypeError('Variable: ', var_id, ' is a two dimention array')
 
+    # function that raises an error when the variable is not a two dimension array
+    def verify_two_dim_array(self, function_id, var_id):
+        if self.functions[function_id][tokens.VARS][var_id][2] == None:
+            raise TypeError('Variable: ', var_id, ' is not an array')
+        if self.functions[function_id][tokens.VARS][var_id][3] == None:
+            raise TypeError('Variable: ', var_id, ' is not a two dimention array')
+
     def access_array_dim_one(self, id):
         array_context = self.get_variable_context(id)
         if array_context == None:
@@ -426,6 +446,45 @@ class Compiler:
         self.p_values.append(temp_direction) # push pointer to array position
         self.p_operators.pop() # pop fake bottom
 
+    def access_array_dim_two(self, id):
+        array_context = self.get_variable_context(id)
+        if array_context == None:
+            raise NameError('Variable: ', id, ' does not exist in context')
+        self.verify_two_dim_array(array_context, id)
+
+        dim_one = self.functions[array_context][tokens.VARS][id][2][0]
+        m = self.functions[array_context][tokens.VARS][id][2][1] ######
+        dim_two = self.functions[array_context][tokens.VARS][id][3][0]
+        base_direction = self.functions[array_context][tokens.VARS][id][1]
+        type = self.functions[array_context][tokens.VARS][id][0]
+
+        pos_2 = self.p_values.pop()
+        pos_1 = self.p_values.pop()
+
+        self.quadruples.append([tokens.VER, pos_1, None, dim_one])
+
+        self.current_cte_type = tokens.INT
+        self.push_constant_data(m)
+        m_direction = self.p_values.pop()
+
+        t_jump = self.get_variable_direction(tokens.INT)
+
+        self.quadruples.append([tokens.MULT, pos_1, m_direction, t_jump])
+#        self.p_values.append(t_jump)
+
+        self.quadruples.append([tokens.VER, pos_2, None, dim_two])
+
+        t_offset = self.get_variable_direction(tokens.INT)
+        self.quadruples.append([tokens.PLUS, t_jump, pos_2, t_offset])
+
+        self.current_cte_type = tokens.INT
+        self.push_constant_data(base_direction)
+        constant = self.p_values.pop()
+        temp_direction = self.get_pointer_direction(type)
+
+        self.quadruples.append([tokens.PLUS_POINTER, t_offset, constant, temp_direction])
+        self.p_values.append(temp_direction) # push pointer to array position
+        #self.p_operators.pop() # pop fake bottom
     #Functions
     def generate_end_proc(self):
         self.quadruples.append([tokens.END_PROC, None, None, None])

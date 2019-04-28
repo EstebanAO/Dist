@@ -1,0 +1,18 @@
+program test13;
+
+var arr[4][3]:float;
+var ay:int;
+
+fun hola(a:int):void {
+  var arr[9]:char;
+  arr[9] = 'v';
+  arr[2] = 'v';
+  print(arr[9], arr[2]);
+}
+
+main {
+  ay = 1;
+  read(arr[2][1]);
+//  read(ay);
+  print("valor leido: ", arr[2][1]);
+}

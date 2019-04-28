@@ -110,7 +110,7 @@ class VirtualMachine:
             return tokens.INT
         elif direction < limits.P_BOOL + limits.MEMORY_RANGE:
             return tokens.BOOL
-        elif direction < limits.L_FLOAT + limits.MEMORY_RANGE:
+        elif direction < limits.P_FLOAT + limits.MEMORY_RANGE:
             return tokens.FLOAT
         elif direction < limits.C_CHAR + limits.MEMORY_RANGE:
             return tokens.CHAR
@@ -189,6 +189,7 @@ class VirtualMachine:
         print(self.local)
 
     def read_function(self, direction):
+        print("> > > ", direction, " ", self.get_pointer_value(direction));
         type = self.get_direction_type(direction)
         try:
             val = input()
@@ -272,7 +273,6 @@ class VirtualMachine:
                     self.actual_index = quad[3] - 1
             elif (quad[0] == tokens.GO_TO):
                 self.actual_index = quad[3] - 1
-
             self.actual_index += 1
         self.print_stuff()
 
@@ -281,7 +281,7 @@ class VirtualMachine:
         file_array = pickle.load(quad_file)
         self.quadruples = file_array[0]
         self.constants = file_array[1]
-        self.start_index = file_array[2]
+        self.start_index = 0 # file_array[2]
         self.cast_constants()
         quad_file.close()
     #    self.print_quad()

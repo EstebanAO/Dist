@@ -1,0 +1,19 @@
+program testtd1;
+
+var x:int;
+main {
+  var y:int;
+  var ay[3][4]:int;
+  var loco[8]:int;
+  loco[2] = 5;
+  y = 110;
+  x = 10 * 10;
+  // ay[2][1] = 6;
+  ay[loco[2] + ((x/5)/10) - loco[2]][111-y] = 6;
+  loco[ay[loco[2] + ((x/5)/10) - loco[2]][111-y] / 2] =7;
+  print(ay[2][1]);
+  print(loco[3]);
+}
+// resultado esperado
+// 6
+// 7
