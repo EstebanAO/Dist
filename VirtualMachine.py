@@ -9,7 +9,8 @@ class VirtualMachine:
         # Compiler Data
         self.quadruples = []
         self.constants = {}
-        self.start_direction = 0
+        self.start_index = 0
+        self.actual_index = 0
 
         #Virtual Machine Data
         self.global_var = [[],[],[],[]]
@@ -211,9 +212,9 @@ class VirtualMachine:
     def run(self, file_name):
         self.get_quadruples(file_name)
         self.local.append([[],[],[],[],[],[],[],[]])
-        index = 0
-        while(index < len(self.quadruples)):
-            quad = self.quadruples[index]
+        self.actual_index = self.start_index
+        while(self.actual_index < len(self.quadruples)):
+            quad = self.quadruples[self.actual_index]
             if quad[1] != None:
                 value_left = self.get_variable_value(quad[1])
             if quad[2] != None:
@@ -266,7 +267,13 @@ class VirtualMachine:
                     raise IndexError('Index error ', value_left, ' ', quad[3] - 1)
             elif (quad[0] == tokens.PLUS_POINTER):
                 self.set_initial_pointer_value(quad[3], value_left + value_right)
-            index += 1
+            elif (quad[0] == tokens.GO_TO_F):
+                if not self.get_variable_value(quad[1]):
+                    self.actual_index = quad[3] - 1
+            elif (quad[0] == tokens.GO_TO):
+                self.actual_index = quad[3] - 1
+
+            self.actual_index += 1
         self.print_stuff()
 
     def get_quadruples(self, file_name):
@@ -274,7 +281,7 @@ class VirtualMachine:
         file_array = pickle.load(quad_file)
         self.quadruples = file_array[0]
         self.constants = file_array[1]
-        self.start_direction = file_array[2]
+        self.start_index = file_array[2]
         self.cast_constants()
         quad_file.close()
     #    self.print_quad()
