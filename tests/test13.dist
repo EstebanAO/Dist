@@ -16,3 +16,6 @@ main {
 //  read(ay);
   print("valor leido: ", arr[2][1]);
 }
+
+// resultado esperado
+// valor leido: <valor float ingresado>

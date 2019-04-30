@@ -296,7 +296,6 @@ class Compiler:
             operator = self.p_operators.pop()
             type_right_operand = self.get_direction_type(right_operand)
             type_left_operand = self.get_direction_type(left_operand)
-            print(left_operand," ",right_operand)
             new_type = SEM_CUBE[type_right_operand][type_left_operand][operator]
             if new_type == tokens.ERROR:
                 raise NameError('Type Mismatch Error: ', right_operand[1] , ' does not match ' , left_operand[1])
@@ -427,6 +426,7 @@ class Compiler:
 
     def access_array_dim_one(self, id):
         array_context = self.get_variable_context(id)
+        print(" > > > < < < ", array_context)
         if array_context == None:
             raise NameError('Variable: ', id, ' does not exist in context')
         self.verify_one_dim_array(array_context, id)

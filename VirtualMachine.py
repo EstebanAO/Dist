@@ -189,7 +189,6 @@ class VirtualMachine:
         print(self.local)
 
     def read_function(self, direction):
-        print("> > > ", direction, " ", self.get_pointer_value(direction));
         type = self.get_direction_type(direction)
         try:
             val = input()
