@@ -17,6 +17,8 @@ class VirtualMachine:
         self.local = []
         self.params = {}
         self.jumps = []
+        self.temp_return_value = ""
+        self.temp_to_return_direction = []
 
     def print_quad(self):
         print(self.constants)
@@ -220,9 +222,9 @@ class VirtualMachine:
         self.actual_index = self.start_index
         while(self.actual_index < len(self.quadruples)):
             quad = self.quadruples[self.actual_index]
-            if quad[1] != None:
+            if quad[1] != None and quad[0] != tokens.GO_SUB:
                 value_left = self.get_variable_value(quad[1])
-            if quad[2] != None:
+            if quad[2] != None and quad[0] != tokens.GO_SUB:
                 value_right = self.get_variable_value(quad[2])
             if (quad[0] == tokens.PLUS):
                 self.set_variable_value(quad[3], value_left + value_right)
@@ -282,9 +284,15 @@ class VirtualMachine:
                 self.assign_param(quad[1], quad[3])
             elif (quad[0] == tokens.GO_SUB):
                 self.go_sub()
+                self.temp_to_return_direction.append(quad[1])
                 self.jumps.append(self.actual_index)
                 self.actual_index = quad[3] - 1
             elif (quad[0] == tokens.END_PROC):
+                self.actual_index = self.jumps.pop()
+            elif (quad[0] == tokens.RETURN):
+                self.temp_return_value = self.get_variable_value(quad[3])
+                self.local.pop()
+                self.set_variable_value(self.temp_to_return_direction.pop(), self.temp_return_value)
                 self.actual_index = self.jumps.pop()
 
             self.actual_index += 1
