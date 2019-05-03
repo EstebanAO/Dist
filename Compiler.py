@@ -385,10 +385,10 @@ class Compiler:
         argument_type = self.get_direction_type(argument)
         if (argument_type != var_type):
             raise TypeError('Argument type error')
-        self.quadruples.append([tokens.ASSIGN, argument, None, var_direction])
+        self.quadruples.append([tokens.ASSIGN_PARAM, argument, None, var_direction])
 
     def generate_era_quadruple(self):
-        self.quadruples.append([tokens.END_PROC, None, None, None])
+        self.quadruples.append([tokens.ERA, None, None, None])
 
     def generate_go_sub_quadruple(self, name):
         start_direction = self.functions[name][tokens.START]

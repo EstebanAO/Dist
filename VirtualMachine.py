@@ -15,6 +15,8 @@ class VirtualMachine:
         #Virtual Machine Data
         self.global_var = [[],[],[],[]]
         self.local = []
+        self.params = {}
+        self.jumps = []
 
     def print_quad(self):
         print(self.constants)
@@ -25,18 +27,14 @@ class VirtualMachine:
         return direction >= limits.P_CHAR and direction < limits.P_FLOAT + limits.MEMORY_RANGE
 
     def get_pointer_value(self, direction):
-    #    print("---- ", direction, " - ", self.local , " -----");
         return self.local[-1][int(direction / limits.MEMORY_RANGE) - 4][direction % limits.MEMORY_RANGE]
 
     def get_variable_value(self, direction):
-    #     print(" ... ", direction)
         if self.is_pointer(direction):
             return self.get_variable_value(self.get_pointer_value(direction))
         if direction < limits.G_FLOAT + limits.MEMORY_RANGE:
             return self.global_var[int(direction / limits.MEMORY_RANGE)][direction % limits.MEMORY_RANGE]
         elif direction < limits.P_FLOAT + limits.MEMORY_RANGE:
-        #    print("- ", direction, " ", self.local)
-        #     print("sum: ", limits.P_FLOAT + limits.MEMORY_RANGE)
             return self.local[-1][int(direction / limits.MEMORY_RANGE) - 4][direction % limits.MEMORY_RANGE]
         else:
             return self.constants[direction]
@@ -167,8 +165,6 @@ class VirtualMachine:
         self.local[-1][index_type][index_limit] = value
 
     def set_variable_value(self, direction, value):
-    #    print(" * ", direction, " ", value, self.local)
-
         if self.is_pointer(direction):
             direction = self.get_pointer_value(direction)
 
@@ -209,6 +205,15 @@ class VirtualMachine:
         except:
             raise TypeError('Read type error')
 
+    def assign_param(self, sender_direction, receiver_direction):
+        value = self.get_variable_value(sender_direction)
+        self.params[receiver_direction] = value
+    def go_sub(self):
+        self.local.append([[],[],[],[],[],[],[],[]])
+        for key, value in self.params.items():
+            self.set_variable_value(key, value)
+
+
     def run(self, file_name):
         self.get_quadruples(file_name)
         self.local.append([[],[],[],[],[],[],[],[]])
@@ -235,7 +240,6 @@ class VirtualMachine:
                     value_left = int(value_left)
                 self.set_variable_value(quad[3], value_left)
             elif (quad[0] == tokens.EQU):
-            #    print(value_left == value_right)
                 self.set_variable_value(quad[3], value_left == value_right)
             elif (quad[0] == tokens.GREATER):
                 self.set_variable_value(quad[3], value_left > value_right)
@@ -272,6 +276,17 @@ class VirtualMachine:
                     self.actual_index = quad[3] - 1
             elif (quad[0] == tokens.GO_TO):
                 self.actual_index = quad[3] - 1
+            elif (quad[0] == tokens.ERA):
+                self.params = {}
+            elif (quad[0] == tokens.ASSIGN_PARAM):
+                self.assign_param(quad[1], quad[3])
+            elif (quad[0] == tokens.GO_SUB):
+                self.go_sub()
+                self.jumps.append(self.actual_index)
+                self.actual_index = quad[3] - 1
+            elif (quad[0] == tokens.END_PROC):
+                self.actual_index = self.jumps.pop()
+
             self.actual_index += 1
         self.print_stuff()
 
