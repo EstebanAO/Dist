@@ -292,8 +292,15 @@ class VirtualMachine:
             elif (quad[0] == tokens.RETURN):
                 self.temp_return_value = self.get_variable_value(quad[3])
                 self.local.pop()
-                self.set_variable_value(self.temp_to_return_direction.pop(), self.temp_return_value)
-                self.actual_index = self.jumps.pop()
+                if len(self.local) != 0:
+                    self.set_variable_value(self.temp_to_return_direction.pop(), self.temp_return_value)
+                    self.actual_index = self.jumps.pop()
+                else:
+                    self.actual_index = len(self.quadruples)
+                    print("End of program with: ", self.temp_return_value)
+
+
+
 
             self.actual_index += 1
         self.print_stuff()
