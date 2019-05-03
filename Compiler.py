@@ -397,6 +397,7 @@ class Compiler:
         self.p_values.append(direction_temp)
         self.quadruples.append([tokens.GO_SUB, direction_temp, None, start_direction])
         self.c_function_params = 0
+        self.p_operators.pop()
 
     def add_fake_bottom(self):
         self.p_operators.append('(')
