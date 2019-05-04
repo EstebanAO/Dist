@@ -1,0 +1,34 @@
+program test18;
+
+fun saludos() : void {
+    print("SALUDOS: ");
+ //   n = n + 100;
+  //  return 7;
+}
+
+fun holaMundo(n:int):void {
+    var i:int;
+    i = 0;
+    while (i < n) {
+        print(i + 1, ". hola mundo");
+        i = i + 1;
+        saludos();
+    };
+}
+
+fun repite(n:int):void {
+    var i:int;
+    i = 0;
+    while (i < n) {
+        print("repito");
+        i = i + 1;
+    };
+}
+
+fun ay():int {
+    return 666;
+}
+
+main {
+    holaMundo(4);
+}

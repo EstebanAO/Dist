@@ -283,7 +283,6 @@ class VirtualMachine:
             elif (quad[0] == tokens.ASSIGN_PARAM):
                 self.assign_param(quad[1], quad[3])
             elif (quad[0] == tokens.GO_SUB):
-                print(self.jumps)
                 self.go_sub()
                 if (quad[1] != None):
                     self.temp_to_return_direction.append(quad[1])

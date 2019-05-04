@@ -1,0 +1,16 @@
+program test19;
+
+fun pruebaArr(a[9][7]:int): int {
+  return a;
+}
+
+main {
+  var f[3] : int;
+  f[0] = 8;
+  f[1] = 1;
+  f[2] = 2;
+  print(pruebaArr(f));
+}
+
+// resultado esperado
+// ?

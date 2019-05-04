@@ -1,0 +1,14 @@
+program test16;
+
+fun hola(a:int, b:float, c:int): float {
+  return a + b + c;
+}
+
+main {
+  var f : float;
+  f = hola(1 + 1,2.0 + 3.4 ,3 + 4) + hola(1 + 1,2.0 + 3.0 ,3 + 4);
+  print(f);
+}
+
+// resultado esperado
+// 1
