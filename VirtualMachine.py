@@ -85,9 +85,6 @@ class VirtualMachine:
             return value[1:-1]
 
     def get_direction_type(self, direction):
-    #    if self.is_pointer(direction):
-    #        return self.get_direction_type(self.get_variable_value(direction))
-        # direction = int(direction)
         if direction < limits.G_CHAR + limits.MEMORY_RANGE:
             return tokens.CHAR
         elif direction < limits.G_INT + limits.MEMORY_RANGE:
@@ -157,7 +154,6 @@ class VirtualMachine:
             index_type = int(direction / limits.MEMORY_RANGE) - 4
             index_limit = direction % limits.MEMORY_RANGE
             self.generate_memory_local(index_type, index_limit)
-
             self.local[-1][index_type][index_limit] = '@'
 
     def set_initial_pointer_value(self, direction, value):
@@ -174,12 +170,18 @@ class VirtualMachine:
             index_type = int(direction / limits.MEMORY_RANGE)
             index_limit = direction % limits.MEMORY_RANGE
             self.generate_memory_global(index_type, index_limit)
-            self.global_var[index_type][index_limit] = self.cast_type(direction, value)
+            if value != '@':
+                self.global_var[index_type][index_limit] = self.cast_type(direction, value)
+            else:
+                self.global_var[index_type][index_limit] = '@'
         else:
             index_type = int(direction / limits.MEMORY_RANGE) - 4
             index_limit = direction % limits.MEMORY_RANGE
             self.generate_memory_local(index_type, index_limit)
-            self.local[-1][index_type][index_limit] = self.cast_type(direction, value)
+            if value != '@':
+                self.local[-1][index_type][index_limit] = self.cast_type(direction, value)
+            else:
+                self.local[-1][index_type][index_limit] = '@'
 
     def print_stuff(self):
         print('\n')
@@ -210,10 +212,17 @@ class VirtualMachine:
     def assign_param(self, sender_direction, receiver_direction):
         value = self.get_variable_value(sender_direction)
         self.params[receiver_direction] = value
+
     def go_sub(self):
         self.local.append([[],[],[],[],[],[],[],[]])
         for key, value in self.params.items():
             self.set_variable_value(key, value)
+    
+    def fill_params_array(self, start_dir, end_dir, new_start_dir):
+        counter = 0
+        for new_dir in range(start_dir, end_dir + 1):
+            self.params[new_start_dir + counter] = self.get_variable_value(new_dir)
+            counter += 1
 
     def run(self, file_name):
         self.get_quadruples(file_name)
@@ -299,6 +308,10 @@ class VirtualMachine:
                 else:
                     self.actual_index = len(self.quadruples)
                     print("End of program with: ", self.temp_return_value)
+            elif (quad[0] == tokens.ASSIGN_ARRAY_PARAM):
+                self.fill_params_array(quad[1], quad[2], quad[3])
+
+
             self.actual_index += 1
         self.print_stuff()
 

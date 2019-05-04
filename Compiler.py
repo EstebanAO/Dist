@@ -388,10 +388,11 @@ class Compiler:
         if (argument_type != var_type):
             raise TypeError('Argument type error')
         # [type, direction, [dim_one, dim_two], [dim_two, 0]]
-        print("< > < <> > ", variable)
         if (variable[2] != None and self.is_array(argument)):
-            size = self.get_size_array(argument)
-            print("------ ", size)
+            dims_size = self.get_size_array(argument)
+            size = dims_size[0] * (dims_size[1] if dims_size[1] != None else 1)
+            if variable[2][0] != dims_size[0] or variable[3][0] != dims_size[1]:
+                raise MemoryError('Memory error')
             self.quadruples.append([tokens.ASSIGN_ARRAY_PARAM, argument, argument + size, var_direction])
         else:
             self.quadruples.append([tokens.ASSIGN_PARAM, argument, None, var_direction])
@@ -402,11 +403,9 @@ class Compiler:
                 dim_one = value[1][2]
                 dim_two = value[1][3]
                 if (dim_two != None):
-                    return dim_one[0] * dim_two[0]
+                    return [dim_one[0], dim_two[0]]
                 elif (dim_one != None):
-                    return dim_one[0]
-                else:
-                    return 0
+                    return [dim_one[0], None]
 
     def is_array(self, direction):
         for value in self.functions[self.current_function][tokens.VARS].items():
