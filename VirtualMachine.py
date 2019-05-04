@@ -223,7 +223,11 @@ class VirtualMachine:
         for new_dir in range(start_dir, end_dir + 1):
             self.params[new_start_dir + counter] = self.get_variable_value(new_dir)
             counter += 1
-
+    
+    def initialize_variable(self, direction):
+        ini_value = self.get_default_value(int(direction/limits.MEMORY_RANGE))
+        self.set_variable_value(direction, ini_value)
+    
     def run(self, file_name):
         self.get_quadruples(file_name)
         self.local.append([[],[],[],[],[],[],[],[]])
@@ -310,6 +314,8 @@ class VirtualMachine:
                     print("End of program with: ", self.temp_return_value)
             elif (quad[0] == tokens.ASSIGN_ARRAY_PARAM):
                 self.fill_params_array(quad[1], quad[2], quad[3])
+            elif (quad[0] == tokens.INI_VAR):
+                self.initialize_variable(quad[3])
 
 
             self.actual_index += 1

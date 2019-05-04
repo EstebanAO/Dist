@@ -1,13 +1,13 @@
 program test11;
 
-var ay:bool;
 main {
-  var ey:int;
-  ey = 4;
-  if (ay) {
-    print("hola", 666);
-    while (6 > 7) {
-      ey = ey + ey;
-    };
-  }
+  var i:int;
+  var c:char;
+  var f:float;
+  var b:bool;
+
+  print("i: ", i);
+  print("c: ", c);
+  print("f: ", f);
+  print("b :", b);
 }

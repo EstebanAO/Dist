@@ -106,7 +106,11 @@ class Compiler:
     def add_variables(self, type):
         while (len(self.pending_ids) > 0):
             name = self.pending_ids.pop()
-            self.functions[self.current_function][tokens.VARS][name] = [type, self.get_variable_direction(type), None, None]
+            if name in self.functions[self.current_function][tokens.VARS]:
+                raise NameError('Variable: ', name, ' already exists in context')
+            direction = self.get_variable_direction(type)
+            self.functions[self.current_function][tokens.VARS][name] = [type, direction, None, None]
+            self.quadruples.append([tokens.INI_VAR, None, None, direction])
 
     def switch_context(self, function_name):
         self.l_char = limits.L_CHAR - 1
@@ -161,7 +165,7 @@ class Compiler:
                 self.l_float += count
 
     def add_array_one_dim(self, dim_one, type, is_param = False):
-        name = self.pending_ids.pop()
+        name = self.current_variable
         if dim_one < 1:
             raise IndexError('Array: ', name, ' size must be grater than zero')
         direction = self.get_variable_direction(type)
@@ -171,7 +175,8 @@ class Compiler:
             self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one])
 
     def add_array_two_dim(self, dim_one, dim_two, type, is_param = False):
-        name = self.pending_ids.pop()
+        self.print_tables()
+        name = self.current_variable
         if dim_one < 1 or dim_two < 1:
             raise IndexError('Array: ', name, ' size must be grater than zero')
         direction = self.get_variable_direction(type)
@@ -189,6 +194,8 @@ class Compiler:
 
     def add_param(self, name):
         self.current_variable = name
+        if name in self.functions[self.current_function][tokens.VARS]:
+            raise NameError('Variable: ', name, ' already exists in context')
         self.functions[self.current_function][tokens.VARS][self.current_variable] = ['', None, None, None]
         self.functions[self.current_function][tokens.PARAMS].append(name)
 
@@ -208,7 +215,7 @@ class Compiler:
     def push_variable_data(self, id):
         var_context = self.get_variable_context(id)
         if var_context == None:
-            raise NameError('Variable: ', id, ' does not exist in context')
+            raise NameError('Variable: ', id, ' does not exists in context')
         variable = self.functions[var_context][tokens.VARS][id]
         self.p_values.append(variable[1])
 
@@ -325,7 +332,6 @@ class Compiler:
         self.quadruples.append([tokens.PRINT_NEW_LINE, None, None, None])
 
     def generate_print_quadruple(self):
-        print("lo p hay", self.p_values)
         self.quadruples.append([tokens.PRINT, None, None, self.p_values.pop()])
 
     def generate_read_array_quadruple(self):
@@ -378,9 +384,12 @@ class Compiler:
         self.quadruples.append([tokens.GO_TO, None, None, quad_index])
 
     def assign_param_direction(self, function_call):
-        var_name = self.functions[function_call][tokens.PARAMS][self.c_function_params]
+        function = self.functions[function_call]
+        if self.c_function_params >= len(function[tokens.PARAMS]):
+            raise TypeError('function ', function_call, ' takes exactly ', len(function[tokens.PARAMS]), ' params.')
+        var_name = function[tokens.PARAMS][self.c_function_params]
         self.c_function_params += 1
-        variable = self.functions[function_call][tokens.VARS][var_name]
+        variable = function[tokens.VARS][var_name]
         var_type = variable[0]
         var_direction = variable[1]
         argument = self.p_values.pop()
@@ -421,11 +430,14 @@ class Compiler:
         self.quadruples.append([tokens.ERA, None, None, None])
 
     def generate_go_sub_quadruple(self, name):
-        start_direction = self.functions[name][tokens.START]
-        direction_type = self.functions[name][tokens.TYPE]
+        function = self.functions[name]
+        start_direction = function[tokens.START]
+        direction_type = function[tokens.TYPE]
         direction_temp = self.get_variable_direction(direction_type)
         self.p_values.append(direction_temp)
         self.quadruples.append([tokens.GO_SUB, direction_temp, None, start_direction])
+        if self.c_function_params != len(function[tokens.PARAMS]):
+            raise TypeError('function ', name, ' takes exactly ', len(function[tokens.PARAMS]), ' params.')
         self.c_function_params = 0
         self.p_operators.pop()
 

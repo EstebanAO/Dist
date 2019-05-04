@@ -1,6 +1,6 @@
 program test8;
 
-var arr[10]:float;
+var arr[10][10]:float;
 main {
   arr[7] = 7.7;
 }

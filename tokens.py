@@ -41,3 +41,4 @@ VER = 'ver'
 PLUS_POINTER = "++"
 ASSIGN_PARAM = '= param'
 ASSIGN_ARRAY_PARAM = '= array_param'
+INI_VAR = 'ini_var'
