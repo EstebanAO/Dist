@@ -354,6 +354,12 @@ class Compiler:
             raise NameError('Variable: ', id, ' does not exist in context')
         direction = self.functions[var_context][tokens.VARS][id][1]
         self.quadruples.append([tokens.READ, None, None, direction])
+    
+    def verify_pos_type(self):
+        direction = self.p_values[-1]
+        type = self.get_direction_type(direction)
+        if type != tokens.INT:
+            raise TypeError('Array index must be integer')
 
     #Conditionals
     def generate_return_quadruple(self):
