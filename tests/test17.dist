@@ -1,0 +1,27 @@
+program test17;
+
+fun doble (n : int):int {
+    return n * 2;
+}
+
+fun triple (n : int):int {
+    return n * 3;
+}
+
+// black star 
+
+main {
+    var x:int;
+    x = 1;
+    print("ey");
+    //    2   1
+    x = doble(x);
+    //      48    16     8     4   2
+    print("valor: ", triple(doble(doble(doble(2)))));
+    print("adios");
+}
+
+// resultado esperado:
+// ey
+// valor: 48 
+// adios

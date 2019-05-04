@@ -1,0 +1,17 @@
+program test20;
+
+fun fact(a:int) : int {
+    if (a == 0) {
+        return 1;
+    }
+    else {
+        return a * fact(a - 1);
+    };
+}
+
+main {
+    print(fact(5));
+}
+
+// resultado esperado
+// 120 

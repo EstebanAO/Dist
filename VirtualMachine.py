@@ -215,7 +215,6 @@ class VirtualMachine:
         for key, value in self.params.items():
             self.set_variable_value(key, value)
 
-
     def run(self, file_name):
         self.get_quadruples(file_name)
         self.local.append([[],[],[],[],[],[],[],[]])

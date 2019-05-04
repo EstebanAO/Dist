@@ -43,8 +43,8 @@ llamada_funcion_especial        : (SIZE | VARIANCE | MODE | MEDIAN |
 llamada_funcion				    : ID {function_call = $ID.text} {c.generate_era_quadruple()} {c.add_fake_bottom()} '(' (expresion {c.assign_param_direction(function_call)} (',' expresion {c.assign_param_direction(function_call)})*)? ')'{c.generate_go_sub_quadruple(function_call)};
 
 funcion                         :  FUN ID {c.switch_context($ID.text)} '('
-                                   (ID {c.add_param($ID.text)} ('[' CTE_I ']' ':' tipo {c.add_array_one_dim(int($CTE_I.text), $tipo.text)} dimension_uno ) | ('[' CTE_I {dim_one = $CTE_I.text } ']' '[' CTE_I {dim_two = $CTE_I.text } ']' ':' tipo {c.add_array_two_dim(int(dim_one), int(dim_two), $tipo.text)} dimension_dos )
-                                   (',' ID {c.add_param($ID.text)} ('[' CTE_I ']' ('[' CTE_I ']')?)?
+                                   (ID {c.add_param($ID.text)} {c.push_id($ID.text)} ('[' CTE_I ']' ':' tipo {c.add_array_one_dim(int($CTE_I.text), $tipo.text)} dimension_uno ) | ('[' CTE_I {dim_one = $CTE_I.text } ']' '[' CTE_I {dim_two = $CTE_I.text } ']' ':' tipo {c.add_array_two_dim(int(dim_one), int(dim_two), $tipo.text)} dimension_dos )
+                                   (',' ID {c.add_param($ID.text)} {c.push_id($ID.text)} ('[' CTE_I ']' ':' tipo {c.add_array_one_dim(int($CTE_I.text), $tipo.text)} dimension_uno ) | ('[' CTE_I {dim_one = $CTE_I.text } ']' '[' CTE_I {dim_two = $CTE_I.text } ']' ':' tipo {c.add_array_two_dim(int(dim_one), int(dim_two), $tipo.text)} dimension_dos )
                                    ':' tipo {c.add_type($tipo.text) } )*)?
                                    ')' ':' tipo_funcion {c.add_function_type($tipo_funcion.text)}
                                    bloque_local {c.generate_end_proc()};

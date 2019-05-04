@@ -160,23 +160,25 @@ class Compiler:
                     raise MemoryError('Memory error')
                 self.l_float += count
 
-    def add_array_one_dim(self, dim_one, type):
+    def add_array_one_dim(self, dim_one, type, is_param = False):
         name = self.pending_ids.pop()
         if dim_one < 1:
             raise IndexError('Array: ', name, ' size must be grater than zero')
         direction = self.get_variable_direction(type)
         self.functions[self.current_function][tokens.VARS][name] = [type, direction, [dim_one, 0], None]
         self.update_direction_counter(type, dim_one)
-        self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one])
+        if not is_param:
+            self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one])
 
-    def add_array_two_dim(self, dim_one, dim_two, type):
+    def add_array_two_dim(self, dim_one, dim_two, type, is_param = False):
         name = self.pending_ids.pop()
         if dim_one < 1 or dim_two < 1:
             raise IndexError('Array: ', name, ' size must be grater than zero')
         direction = self.get_variable_direction(type)
         self.functions[self.current_function][tokens.VARS][name] = [type, direction, [dim_one, dim_two], [dim_two, 0]]
         self.update_direction_counter(type, dim_one * dim_two)
-        self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one * dim_two])
+        if not is_param:
+            self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one * dim_two])
 
     def add_type(self, type):
         self.functions[self.current_function][tokens.VARS][self.current_variable][0] = type
@@ -385,7 +387,32 @@ class Compiler:
         argument_type = self.get_direction_type(argument)
         if (argument_type != var_type):
             raise TypeError('Argument type error')
-        self.quadruples.append([tokens.ASSIGN_PARAM, argument, None, var_direction])
+        # [type, direction, [dim_one, dim_two], [dim_two, 0]]
+        print("< > < <> > ", variable)
+        if (variable[2] != None and self.is_array(argument)):
+            size = self.get_size_array(argument)
+            print("------ ", size)
+            self.quadruples.append([tokens.ASSIGN_ARRAY_PARAM, argument, argument + size, var_direction])
+        else:
+            self.quadruples.append([tokens.ASSIGN_PARAM, argument, None, var_direction])
+
+    def get_size_array(self, direction):
+        for value in self.functions[self.current_function][tokens.VARS].items():
+            if value[1][1] == direction:
+                dim_one = value[1][2]
+                dim_two = value[1][3]
+                if (dim_two != None):
+                    return dim_one[0] * dim_two[0]
+                elif (dim_one != None):
+                    return dim_one[0]
+                else:
+                    return 0
+
+    def is_array(self, direction):
+        for value in self.functions[self.current_function][tokens.VARS].items():
+            if value[1][1] == direction and value[1][2] != None:
+                return True
+        return False
 
     def generate_era_quadruple(self):
         self.quadruples.append([tokens.ERA, None, None, None])

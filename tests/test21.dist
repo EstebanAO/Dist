@@ -1,0 +1,12 @@
+program test21;
+
+fun hola(arr[5]:int) : void {
+    print(arr[1]);
+}
+
+main {
+    var a[5]:int;
+    a[0] = 665;
+    a[1] = 666;
+    hola(a);
+}
