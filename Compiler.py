@@ -391,7 +391,11 @@ class Compiler:
         if (variable[2] != None and self.is_array(argument)):
             dims_size = self.get_size_array(argument)
             size = dims_size[0] * (dims_size[1] if dims_size[1] != None else 1)
-            if variable[2][0] != dims_size[0] or variable[3][0] != dims_size[1]:
+            if variable[3] == None and dims_size[1] != None:
+                raise MemoryError('Memory error')
+            if variable[3] != None and dims_size[1] == None:
+                raise MemoryError('Memory error')
+            if variable[2][0] != dims_size[0] or (variable[3] != None and variable[3][0] != dims_size[1]):
                 raise MemoryError('Memory error')
             self.quadruples.append([tokens.ASSIGN_ARRAY_PARAM, argument, argument + size, var_direction])
         else:

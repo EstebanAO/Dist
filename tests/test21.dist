@@ -1,24 +1,9 @@
 program test21;
 
-fun hola(arr[5][5]:int, r:int,arr2[5][5]:int ) : void {
+fun hola(arr[5][5]:int, r:int,arr2[3]:int ) : void {
     print(arr[3][0]);
-    print(arr2[2][1]);
+    print(arr2[2]);
     print(r);
-
-}
-
-fun hola1(arr[5][5]:int,arr2[5][5]:int,r:int ) : void {
-
-
-}
-
-fun hola2(r:int ) : void {
-
-
-}
-
-fun hola3( ) : void {
-
 
 }
 
@@ -49,18 +34,14 @@ fun hola4(arr2[3][3]:int ) : int {
 }
 
 main {
-    var a[5][5]:char;
-    var a2[3][3]:int;
+    var a[5][5]:int;
+    var a2[3]:int;
     var x : int;
 
     a[3][0] = 665;
     a[2][1] = 666;
-    a2[0][0] = 123;
-    a2[1][1] = 456;
-    hola(a, 65/3*3, a);
-    x = hola4(a2);
-    print("Ya casi bailo con el senor ", x);
-
+    a2[2] = 6;
+    hola(a, 65/3*3, a2);
 }
 
 
