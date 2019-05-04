@@ -165,7 +165,6 @@ class VirtualMachine:
     def set_variable_value(self, direction, value):
         if self.is_pointer(direction):
             direction = self.get_pointer_value(direction)
-
         if direction < limits.L_CHAR:
             index_type = int(direction / limits.MEMORY_RANGE)
             index_limit = direction % limits.MEMORY_RANGE

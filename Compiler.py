@@ -240,6 +240,17 @@ class Compiler:
             self.c_string += 1
             self.p_values.append(self.c_string)
             self.cte_values[self.c_string] = value
+    
+    def change_sign(self, sign):
+        if sign == "-":
+            self.current_cte_type = tokens.INT
+            self.push_constant_data("-1")
+            negative = self.p_values.pop()
+            value = self.p_values.pop()
+            value_type = self.get_direction_type(value)
+            direction = self.get_variable_direction(value_type)
+            self.quadruples.append([tokens.MULT, negative, value, direction])
+            self.p_values.append(direction)
 
     def push_operator(self, operator):
         self.p_operators.append(operator)
