@@ -1,7 +1,7 @@
 program test24;
 
 main{
-    var arrB[5] : float;
+    var arrB[5] : int;
     var arrI[5] : int;
 
     arrI[1] = arrI[arrB[1]];
