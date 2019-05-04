@@ -1,8 +1,8 @@
 program test24;
 
 main{
-    var arrB[5] : bool;
+    var arrB[5] : float;
     var arrI[5] : int;
 
-    arrI[1] = arrI[4];
+    arrI[1] = arrI[arrB[1]];
 }

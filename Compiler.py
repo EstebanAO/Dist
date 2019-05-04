@@ -436,9 +436,21 @@ class Compiler:
                     return [dim_one[0], dim_two[0]]
                 elif (dim_one != None):
                     return [dim_one[0], None]
+        for value in self.functions[tokens.GLOBAL][tokens.VARS].items():
+            if value[1][1] == direction:
+                dim_one = value[1][2]
+                dim_two = value[1][3]
+                if (dim_two != None):
+                    return [dim_one[0], dim_two[0]]
+                elif (dim_one != None):
+                    return [dim_one[0], None]
+
 
     def is_array(self, direction):
         for value in self.functions[self.current_function][tokens.VARS].items():
+            if value[1][1] == direction and value[1][2] != None:
+                return True
+        for value in self.functions[tokens.GLOBAL][tokens.VARS].items():
             if value[1][1] == direction and value[1][2] != None:
                 return True
         return False
@@ -486,7 +498,6 @@ class Compiler:
 
     def access_array_dim_one(self, id):
         array_context = self.get_variable_context(id)
-        print(" > > > < < < ", array_context)
         if array_context == None:
             raise NameError('Variable: ', id, ' does not exist in context')
         self.verify_one_dim_array(array_context, id)
