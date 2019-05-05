@@ -2,6 +2,7 @@ grammar dist;
 
 @header{
 from Compiler import Compiler
+import tokens
 c = Compiler()
 id_arr = ''
 quad_assign = ''
@@ -23,7 +24,7 @@ sign                            : ('+' | '-');
 factor                          : ((sign? '(' {c.push_operator('(')} expresion ')'{c.change_sign($sign.text)}{c.pop_operator()}) | (sign? var_cte {c.change_sign($sign.text)})) {c.generate_operation_quadruple('*')};
 var_cte                         : cte {c.push_constant_data($cte.text)} | ID {c.push_variable_data($ID.text)} | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
 cte                             : (CTE_I {c.current_cte_type = 'int'} | CTE_F {c.current_cte_type = 'float'} | CTE_C {c.current_cte_type = 'char'} | CTE_B {c.current_cte_type = 'bool'} | NULL {c.current_cte_type = 'null'});
-lectura                         : READ '(' (posicion_arreglo {c.generate_read_array_quadruple()}) ')';
+lectura                         : READ '(' ((ID {c.generate_read_quadruple($ID.text)}) | (posicion_arreglo {c.generate_read_array_quadruple()})) ')';
 escritura                       : PRINT '(' (expresion | CTE_STRING {c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}) {c.generate_print_quadruple()} (',' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}){c.generate_print_quadruple()})* ')' {c.add_new_line()};
 tipo                            : INT | FLOAT | CHAR | BOOL;
 tipo_funcion                    : tipo | VOID;
@@ -34,12 +35,32 @@ un_parametro                    : '(' expresion ')';
 dos_parametros                  : '(' expresion ',' expresion ')';
 tres_parametros                 : '(' expresion ',' expresion ',' expresion ')';
 
-llamada_funcion_especial        : (SIZE | VARIANCE | MODE | MEDIAN |
-                                    EXP_GEOMETRIC | VAR_GEOMETRIC |
-                                    PLOT_HISTOGRAM | EXP_BERNOULLI | VAR_BERNOULLI) un_parametro
-                                    | (POW | SQRT | PROB | MOMENT | EXP_BINOMIAL |
-                                    VAR_BINOMIAL | PROB_GEOMETRIC) dos_parametros |
-                                    PROB_BINOMIAL tres_parametros;
+llamada_pow                     : POW '(' expresion {c.verify_float()}',' expresion {c.verify_float()}')' {c.generate_quadruple_special_func(tokens.POW)};
+llamada_sqrt                    : SQRT '(' expresion {c.verify_float()}',' expresion {c.verify_float()}')' {c.generate_quadruple_special_func(tokens.SQRT)};
+llamada_mode                    : MODE '(' expresion {c.verify_array()} {c.verify_int()}')' {c.generate_quadruple_special_func(tokens.MODE)};
+llabada_prob                    : PROB '(' expresion {c.verify_array()} {c.verify_int()} ',' expresion {c.verify_int()} ')' {c.generate_quadruple_special_func(tokens.PROB)};
+llamada_moment                  : MOMENT '(' expresion {c.verify_array()} {c.verify_int()} ',' expresion {c.verify_int()} ')' {c.generate_quadruple_special_func(tokens.MOMENT)};
+llamada_median                  : MEDIAN '(' expresion {c.verify_array()} {c.verify_int()}')' {c.generate_quadruple_special_func(tokens.MEDIAN)};
+llamada_var                     : VAR '(' expresion {c.verify_array()} {c.verify_int()}')' {c.generate_quadruple_special_func(tokens.VAR)};
+llamada_exp_bernoulli           : EXP_BERNOULLI '(' expresion {c.verify_float()}')' {c.generate_quadruple_special_func(tokens.EXP_BERNOULLI)};
+llamada_var_bernoulli           : VAR_BERNOULLI '(' expresion {c.verify_float()}')' {c.generate_quadruple_special_func(tokens.VAR_BERNOULLI)};
+llamada_prob_binomial           : PROB_BINOMIAL'(' expresion {c.verify_float()}',' expresion {c.verify_int()}',' expresion {c.verify_int()}')' {c.generate_quadruple_special_func(tokens.PROB_BINOMIAL)};
+llamada_exp_binomial            : EXP_BINOMIAL '(' expresion {c.verify_float()}',' expresion {c.verify_int()}')' {c.generate_quadruple_special_func(tokens.EXP_BINOMIAL)} ;
+llamada_var_binomial            : VAR_BINOMIAL '(' expresion {c.verify_float()}',' expresion {c.verify_int()}')' {c.generate_quadruple_special_func(tokens.VAR_BINOMIAL)} ;
+llamada_prob_geometric          : PROB_GEOMETRIC '(' expresion {c.verify_float()}',' expresion {c.verify_int()}')' {c.generate_quadruple_special_func(tokens.PROB_GEOMETRIC)} ;
+llamada_exp_geometric           : EXP_GEOMETRIC '(' expresion {c.verify_float()}')' {c.generate_quadruple_special_func(tokens.EXP_GEOMETRIC)};
+llamada_var_geometric           : VAR_GEOMETRIC '(' expresion {c.verify_float()}')' {c.generate_quadruple_special_func(tokens.VAR_GEOMETRIC)};
+llamada_plot_histogram          : PLOT_HISTOGRAM '(' expresion {c.verify_array()} {c.verify_int()}')' {c.generate_quadruple_special_func(tokens.PLOT_HISTOGRAM)};
+
+
+llamada_funcion_especial        : {c.add_fake_bottom()} (llamada_pow | llamada_mode | llamada_sqrt | llabada_prob | llamada_moment | llamada_median | llamada_var | llamada_exp_bernoulli | llamada_var_bernoulli | llamada_prob_binomial | llamada_exp_binomial | llamada_var_binomial | llamada_prob_geometric | llamada_exp_geometric | llamada_var_geometric | llamada_plot_histogram) {c.remove_fake_bottom()};
+/*
+llamada_funcion_especial        : ((SIZE | VARIANCE | MODE | MEDIAN | EXP_GEOMETRIC | VAR_GEOMETRIC |
+                                    PLOT_HISTOGRAM | EXP_BERNOULLI | VAR_BERNOULLI) un_parametro)
+                                    | ((POW | SQRT | PROB | MOMENT | EXP_BINOMIAL |
+                                    VAR_BINOMIAL | PROB_GEOMETRIC) dos_parametros) |
+                                    (PROB_BINOMIAL tres_parametros);
+*/
 
 llamada_funcion				    : ID {function_call = $ID.text} {c.generate_era_quadruple()} {c.add_fake_bottom()} '(' (expresion {c.assign_param_direction(function_call)} (',' expresion {c.assign_param_direction(function_call)})*)? ')'{c.generate_go_sub_quadruple(function_call)};
 

@@ -499,6 +499,9 @@ class Compiler:
 
     def add_fake_bottom(self):
         self.p_operators.append('(')
+    
+    def remove_fake_bottom(self):
+        self.p_operators.pop()
 
     # function that receives a variable id and returns its corresponding context
     def get_variable_context(self, var_id):
@@ -582,10 +585,112 @@ class Compiler:
 
         self.quadruples.append([tokens.PLUS_POINTER, t_offset, constant, temp_direction])
         self.p_values.append(temp_direction) # push pointer to array position
-        #self.p_operators.pop() # pop fake bottom
-    #Functions
+
     def generate_end_proc(self):
         self.quadruples.append([tokens.END_PROC, None, None, None])
+
+    # Special Functions
+    def verify_float(self):
+        if self.get_direction_type(self.p_values[-1]) != tokens.FLOAT:
+            raise NameError('Special function must have a float as parameter')
+    
+    def verify_int(self):
+         if self.get_direction_type(self.p_values[-1]) != tokens.INT:
+             raise NameError('Special function must have a float as parameter')
+    
+    def verify_array(self):
+        if not self.is_array(self.p_values[-1]):
+            raise NameError('Special function must have a float as parameter')
+    
+    def generate_quadruple_special_func(self, func_name):
+        if func_name == tokens.POW:
+            power = self.p_values.pop()
+            value = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.POW, value, power, return_value])
+        elif func_name == tokens.SQRT:
+            power = self.p_values.pop()
+            value = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.SQRT, value, power, return_value])
+        elif func_name == tokens.MODE:
+            array_dir = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.INT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.MODE, array_dir, None, return_value])
+        elif func_name == tokens.PROB:
+            value = self.p_values.pop()
+            array_dir = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.PROB, array_dir, value, return_value])
+        elif func_name == tokens.MOMENT:
+            num_moment = self.p_values.pop()
+            array_dir = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.MOMENT, array_dir, num_moment, return_value])
+        elif func_name == tokens.MEDIAN:
+            array_dir = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.MEDIAN, array_dir, None, return_value])
+        elif func_name == tokens.VAR:
+            array_dir = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.VAR, array_dir, None, return_value])
+        elif func_name == tokens.EXP_BERNOULLI:
+            prob = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.EXP_BERNOULLI, prob, None, return_value])
+        elif func_name == tokens.VAR_BERNOULLI:
+            prob = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.VAR_BERNOULLI, prob, None, return_value])
+        elif func_name == tokens.PROB_BINOMIAL:
+            k = self.p_values.pop()
+            n = self.p_values.pop()
+            prob = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.PROB_BINOMIAL, None, None, return_value])
+            self.quadruples.append([None, prob, n, k])
+        elif func_name == tokens.EXP_BINOMIAL:
+            n = self.p_values.pop()
+            p = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.EXP_BINOMIAL, n, p, return_value])
+        elif func_name == tokens.VAR_BINOMIAL:
+            n = self.p_values.pop()
+            p = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.VAR_BINOMIAL, n, p, return_value])  
+        elif func_name == tokens.PROB_GEOMETRIC:
+            k = self.p_values.pop()
+            p = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.PROB_GEOMETRIC, k, p, return_value]) 
+        elif func_name == tokens.EXP_GEOMETRIC:
+            prob = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.EXP_GEOMETRIC, prob, None, return_value]) 
+        elif func_name == tokens.VAR_GEOMETRIC:
+            prob = self.p_values.pop()
+            return_value = self.get_variable_direction(tokens.FLOAT)
+            self.p_values.append(return_value)
+            self.quadruples.append([tokens.VAR_GEOMETRIC, prob, None, return_value]) 
+        elif func_name == tokens.PLOT_HISTOGRAM:
+            array_dir = self.p_values.pop()
+            self.quadruples.append([tokens.PLOT_HISTOGRAM, array_dir, None, None])
 
     def print_quad(self):
         self.print_tables()
