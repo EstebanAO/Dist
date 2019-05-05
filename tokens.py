@@ -59,3 +59,5 @@ PROB_GEOMETRIC = 'prob_geometric'
 EXP_GEOMETRIC = 'exp_geometric'
 VAR_GEOMETRIC = 'var_geometric'
 PLOT_HISTOGRAM = 'plot_histogram'
+
+SPECIAL_TOKENS = ['pow', 'sqrt', 'mode', 'prob', 'moment', 'median', 'var', 'exp_bernoulli', 'var_bernoulli', 'prob_binomial', 'exp_binomial', 'var_binomial', 'prob_geometric', 'exp_geometric', 'var_geometric', 'plot_histogram']

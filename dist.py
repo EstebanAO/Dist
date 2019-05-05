@@ -1,5 +1,6 @@
 import sys
 import ntpath
+import tokens
 from antlr4 import *
 from distLexer import distLexer
 from distListener import distListener
@@ -12,7 +13,10 @@ class MyErrorListener( ErrorListener ):
         super(MyErrorListener, self).__init__()
 
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        print(msg, " in line ", line, " column ", column)
+        if offendingSymbol.text in tokens.SPECIAL_TOKENS:
+            print(offendingSymbol.text, ' is a reserved token in line ', line, ' col ', column)
+        else:
+            print(msg, " in line ", line, " column ", column)
         sys.exit()
 
 class distPrintListener(distListener):

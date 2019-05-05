@@ -1,0 +1,11 @@
+program test28;
+
+main{
+    var i : int;
+    i = 8;
+    j = 9;
+    var j : float;
+    j = 5;
+
+    println("i: ", i, " j: ", j);
+}

@@ -3,6 +3,8 @@ program test27;
 main{
     var arr[11] : int;
     var i: int;
+    var gargajo : float;
+    // pow(45.9);
     arr[0] = 1;
     arr[1] = 1;
     arr[2] = 3;
@@ -29,4 +31,5 @@ main{
     print("Exp geometric : ", exp_geometric(0.3));
     print("Var geometric : ", var_geometric(0.3));
     plot_histogram(arr);
+   
 }

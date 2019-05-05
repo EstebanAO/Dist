@@ -39,9 +39,7 @@ fun multMatrices(a[2][3]:int, b[3][2]:int):void {
                 k = 0;
                 c[i][j] = 0;
                 while (k < r2) {
-                    print("[", i, ", ", j, "]. ", a[i][k], " ", b[k][j]);
                     temp = c[i][j];
-                    print("temp: ", temp);
                     c[i][j] = temp + a[i][k] * b[k][j];
                     k = k + 1;
                 };
@@ -55,9 +53,10 @@ fun multMatrices(a[2][3]:int, b[3][2]:int):void {
         while (i < r1) {
             j = 0;
             while (j < c2) {
-                print(c[i][j]);
+                print(c[i][j], " ");
                 j = j + 1;
             };
+            println();
             i = i + 1;
         };
     };
