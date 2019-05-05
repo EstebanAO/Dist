@@ -387,6 +387,8 @@ class Compiler:
 
     #Conditionals
     def generate_return_quadruple(self):
+        if self.functions[self.current_function][tokens.TYPE] == tokens.VOID:
+            raise Exception("Void functions can't return a value")
         direction = self.p_values[-1]
         type = SEM_CUBE[self.functions[self.current_function][tokens.TYPE]][self.get_direction_type(direction)][tokens.ASSIGN]
         if  type == tokens.ERROR:
@@ -585,6 +587,7 @@ class Compiler:
 
         self.quadruples.append([tokens.PLUS_POINTER, t_offset, constant, temp_direction])
         self.p_values.append(temp_direction) # push pointer to array position
+        self.p_operators.pop()
 
     def generate_end_proc(self):
         self.quadruples.append([tokens.END_PROC, None, None, None])

@@ -1,0 +1,33 @@
+program find;
+
+fun find(valor: char, arrChar[10] : char) : bool{
+    var i : int;
+    i = 0;
+
+    while(i < 10){
+        if (arrChar[i] == valor){
+            return true;
+        };
+        i = i + 1;
+    };
+    return false;
+}
+
+main{
+    var arr[10] : char;
+    var i : int;
+    var val : char;
+    val = 'r';
+    i = 0;
+    while(i < 10){
+        read(arr[i]);
+        i = i + 1;
+    };
+
+    if (find(val, arr)){
+        print("Se encontro: ", val);
+    } else {
+        print("No se encontro: ", val);
+    };
+
+}

@@ -1,0 +1,70 @@
+program matrixMult;
+
+fun multMatrices(a[2][3]:int, b[3][2]:int):void {
+    var r1, c1, r2, c2, i, j, k, temp: int;
+    var c[2][2]:int;
+    r1 = 2;
+    c1 = 3;
+    r2 = 3;
+    c2 = 2;
+    if (c1 != r2) {
+        print("Matrices cannot be multiplied!");
+    }	
+    else {
+        print("Enter elements of matrix A : ");
+        i = 0;
+        while (i < r1) {
+            j = 0;
+            while (j < c1) {
+                read(a[i][j]);
+                j = j + 1;
+            };
+            i = i + 1;
+        };
+        print("Enter elements of matrix B : ");
+        i = 0;
+        while (i < r2) {
+            j = 0;
+            while (j < c2) {
+                read(b[i][j]);
+                j = j + 1;
+            };
+            i = i + 1;
+        };
+
+        i = 0;
+        while (i < r1) {
+            j = 0;
+            while (j < c2) {
+                k = 0;
+                c[i][j] = 0;
+                while (k < r2) {
+                    print("[", i, ", ", j, "]. ", a[i][k], " ", b[k][j]);
+                    temp = c[i][j];
+                    print("temp: ", temp);
+                    c[i][j] = temp + a[i][k] * b[k][j];
+                    k = k + 1;
+                };
+                j = j + 1;
+            };
+            i = i + 1;
+        };
+
+        print("Product of matrices: ");
+        i = 0;
+        while (i < r1) {
+            j = 0;
+            while (j < c2) {
+                print(c[i][j]);
+                j = j + 1;
+            };
+            i = i + 1;
+        };
+    };
+}
+
+main {
+    var arr1[2][3]:int;
+    var arr2[3][2]:int;
+    multMatrices(arr1, arr2);
+}

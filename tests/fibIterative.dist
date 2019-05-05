@@ -15,7 +15,7 @@ fun fib(n:int):void {
 }
 
 main {
-    fib(11);
+    fib(100);
 }
 
 /*

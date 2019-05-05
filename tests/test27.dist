@@ -13,8 +13,8 @@ main{
     arr[7] = 2;
     arr[8] = 2;
     arr[9] = 6;
-    print("Pow 3 ^ 3:", 2 * pow(20.0 + 5, - 2.0));
-    print("Pow 3 ^ 3:", sqrt(25.0,2.0));
+    print("Pow 3 ^ 3: ", 2 * pow(20.0 + 5, - 2.0));
+    print("Pow 3 ^ 3: ", sqrt(25.0,2.0));
     print("Mode: ", mode(arr));
     print("Prob: ", prob(arr, 2));
     print("Moment: ", moment(arr, 4));
@@ -28,6 +28,5 @@ main{
     print("Prob geometric : ", prob_geometric(0.3, 10));
     print("Exp geometric : ", exp_geometric(0.3));
     print("Var geometric : ", var_geometric(0.3));
-    plot_histogram(arr);
     plot_histogram(arr);
 }

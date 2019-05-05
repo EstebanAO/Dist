@@ -1,0 +1,9 @@
+program test26;
+
+fun testRetrun() : int{
+    return 9.0*7;
+}
+
+main{
+    print(testRetrun());
+}

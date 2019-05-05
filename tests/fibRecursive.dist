@@ -14,5 +14,5 @@ fun fibonacci(n:float) : float {
 }
 
 main {
-    print(fibonacci(10.0));
+    print(fibonacci(23.0));
 }
