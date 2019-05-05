@@ -2,6 +2,8 @@ import sys
 import pickle
 import tokens
 import limits
+import SpecialFunctions
+
 from collections import deque
 
 class VirtualMachine:
@@ -254,6 +256,8 @@ class VirtualMachine:
                 self.set_variable_value(quad[3], value_left)
             elif (quad[0] == tokens.EQU):
                 self.set_variable_value(quad[3], value_left == value_right)
+            elif (quad[0] == tokens.DIFF):
+                self.set_variable_value(quad[3], value_left != value_right)
             elif (quad[0] == tokens.GREATER):
                 self.set_variable_value(quad[3], value_left > value_right)
             elif (quad[0] == tokens.GREATER_EQ):
@@ -311,10 +315,86 @@ class VirtualMachine:
                 self.fill_params_array(quad[1], quad[2], quad[3])
             elif (quad[0] == tokens.INI_VAR):
                 self.initialize_variable(quad[3])
-
-
+            elif (quad[0] == tokens.POW):
+                pow = SpecialFunctions.pow(value_left, value_right)
+                self.set_variable_value(quad[3], pow)
+            elif (quad[0] == tokens.SQRT):
+                sqrt = SpecialFunctions.sqrt(value_left, value_right)
+                self.set_variable_value(quad[3], sqrt)
+            elif (quad[0] == tokens.MODE):
+                list = self.array_to_list(quad[1])
+                mode = SpecialFunctions.mode(list)
+                self.set_variable_value(quad[3], mode)
+            elif (quad[0] == tokens.PROB):
+                list = self.array_to_list(quad[1])
+                value = self.get_variable_value(quad[2])
+                prob = SpecialFunctions.prob(list, value)
+                self.set_variable_value(quad[3], prob)
+            elif (quad[0] == tokens.MOMENT):
+                list = self.array_to_list(quad[1])
+                num_moment = self.get_variable_value(quad[2])
+                res_moment = SpecialFunctions.moment(list, num_moment)
+                self.set_variable_value(quad[3], res_moment)
+            elif (quad[0] == tokens.MEDIAN):
+                list = self.array_to_list(quad[1])
+                median = SpecialFunctions.median(list)
+                self.set_variable_value(quad[3], median)
+            elif (quad[0] == tokens.VAR):
+                list = self.array_to_list(quad[1])
+                var = SpecialFunctions.var(list)
+                self.set_variable_value(quad[3], var)
+            elif (quad[0] == tokens.EXP_BERNOULLI):
+                exp_bernoulli = SpecialFunctions.exp_bernoulli(value_left)
+                self.set_variable_value(quad[3], exp_bernoulli)
+            elif (quad[0] == tokens.VAR_BERNOULLI):
+                var_bernoulli = SpecialFunctions.var_bernoulli(value_left)
+                self.set_variable_value(quad[3], var_bernoulli)
+            elif quad[0] == tokens.PROB_BINOMIAL:
+                return_dir = quad[3]
+                self.actual_index += 1
+                quad = self.quadruples[self.actual_index]
+                prob = self.get_variable_value(quad[1])
+                n = self.get_variable_value(quad[2])
+                k = self.get_variable_value(quad[3])
+                prob_binomial = SpecialFunctions.prob_binomial(prob, n, k)
+                self.set_variable_value(return_dir, prob_binomial)
+            elif quad[0] == tokens.EXP_BINOMIAL:
+                return_dir = quad[3]
+                p = self.get_variable_value(quad[2])
+                n = self.get_variable_value(quad[1])
+                exp_bin = SpecialFunctions.exp_binomial(p, n)
+                self.set_variable_value(return_dir, exp_bin)
+            elif quad[0] == tokens.VAR_BINOMIAL:
+                return_dir = quad[3]
+                p = self.get_variable_value(quad[2])
+                n = self.get_variable_value(quad[1])
+                var_bin = SpecialFunctions.var_binomial(p, n)
+                self.set_variable_value(return_dir, var_bin)
+            elif quad[0] == tokens.PROB_GEOMETRIC:
+                return_dir = quad[3]
+                p = self.get_variable_value(quad[2])
+                k = self.get_variable_value(quad[1])
+                prob_geometric = SpecialFunctions.prob_geometric(k, p)
+                self.set_variable_value(return_dir, prob_geometric)
+            elif (quad[0] == tokens.EXP_GEOMETRIC):
+                exp_geometric = SpecialFunctions.exp_geometric(value_left)
+                self.set_variable_value(quad[3], exp_geometric)
+            elif (quad[0] == tokens.VAR_GEOMETRIC):
+                var_geometric = SpecialFunctions.var_geometric(value_left)
+                self.set_variable_value(quad[3], var_geometric)
+            elif (quad[0] == tokens.PLOT_HISTOGRAM):
+                list = self.array_to_list(quad[1])
+                SpecialFunctions.plot_histogram(list)
+                
             self.actual_index += 1
         self.print_stuff()
+
+    def array_to_list(self, direction):
+        list = []
+        while self.get_variable_value(direction) != '@':
+            list.append(self.get_variable_value(direction))
+            direction += 1
+        return list
 
     def get_quadruples(self, file_name):
         quad_file = open(file_name, 'rb')
