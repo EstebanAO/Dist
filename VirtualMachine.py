@@ -305,12 +305,8 @@ class VirtualMachine:
             elif (quad[0] == tokens.RETURN):
                 self.temp_return_value = self.get_variable_value(quad[3])
                 self.local.pop()
-                if len(self.local) != 0:
-                    self.set_variable_value(self.temp_to_return_direction.pop(), self.temp_return_value)
-                    self.actual_index = self.jumps.pop()
-                else:
-                    self.actual_index = len(self.quadruples)
-                    print("End of program with: ", self.temp_return_value)
+                self.set_variable_value(self.temp_to_return_direction.pop(), self.temp_return_value)
+                self.actual_index = self.jumps.pop()
             elif (quad[0] == tokens.ASSIGN_ARRAY_PARAM):
                 self.fill_params_array(quad[1], quad[2], quad[3])
             elif (quad[0] == tokens.INI_VAR):

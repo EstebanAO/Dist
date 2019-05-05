@@ -62,44 +62,68 @@ class Compiler:
     def get_variable_direction(self, type):
         if type == tokens.INT:
             if self.current_function == tokens.GLOBAL:
+                if self.g_int + 1 >= limits.G_INT + limits.MEMORY_RANGE:
+                    raise MemoryError('Memory has been exceeded')
                 self.g_int += 1
                 return self.g_int
             else:
+                if self.l_int + 1 >= limits.L_INT + limits.MEMORY_RANGE:
+                    raise MemoryError('Memory has been exceeded')
                 self.l_int += 1
                 return self.l_int
         elif type == tokens.CHAR:
             if self.current_function == tokens.GLOBAL:
+                if self.g_char + 1 >= limits.G_CHAR + limits.MEMORY_RANGE:
+                    raise MemoryError('Memory has been exceeded')
                 self.g_char += 1
                 return self.g_char
             else:
+                if self.l_char + 1 >= limits.L_CHAR + limits.MEMORY_RANGE:
+                    raise MemoryError('Memory has been exceeded')
                 self.l_char += 1
                 return self.l_char
         elif type == tokens.BOOL:
             if self.current_function == tokens.GLOBAL:
+                if self.g_bool + 1 >= limits.G_BOOL + limits.MEMORY_RANGE:
+                    raise MemoryError('Memory has been exceeded')
                 self.g_bool += 1
                 return self.g_bool
             else:
+                if self.l_bool + 1 >= limits.L_BOOL + limits.MEMORY_RANGE:
+                    raise MemoryError('Memory has been exceeded')
                 self.l_bool += 1
                 return self.l_bool
         elif type == tokens.FLOAT:
             if self.current_function == tokens.GLOBAL:
+                if self.g_float + 1 >= limits.G_FLOAT + limits.MEMORY_RANGE:
+                    raise MemoryError('Memory has been exceeded')
                 self.g_float += 1
                 return self.g_float
             else:
+                if self.l_float + 1 >= limits.L_FLOAT + limits.MEMORY_RANGE:
+                    raise MemoryError('Memory has been exceeded')
                 self.l_float += 1
                 return self.l_float
 
     def get_pointer_direction(self, type):
         if type == tokens.INT:
+            if self.p_int + 1 >= limits.P_INT + limits.MEMORY_RANGE:
+                raise MemoryError('Memory has been exceeded')
             self.p_int += 1
             return self.p_int
         elif type == tokens.CHAR:
+            if self.p_char + 1 >= limits.P_CHAR + limits.MEMORY_RANGE:
+                raise MemoryError('Memory has been exceeded')
             self.p_char += 1
             return self.p_char
         elif type == tokens.BOOL:
+            if self.p_bool + 1 >= limits.P_BOOL + limits.MEMORY_RANGE:
+                raise MemoryError('Memory has been exceeded')
             self.p_bool += 1
             return self.p_bool
         elif type == tokens.FLOAT:
+            if self.p_float + 1 >= limits.P_FLOAT + limits.MEMORY_RANGE:
+                raise MemoryError('Memory has been exceeded')
             self.p_float += 1
             return self.p_float
 
@@ -364,6 +388,9 @@ class Compiler:
     #Conditionals
     def generate_return_quadruple(self):
         direction = self.p_values[-1]
+        type = SEM_CUBE[self.functions[self.current_function][tokens.TYPE]][self.get_direction_type(direction)][tokens.ASSIGN]
+        if  type == tokens.ERROR:
+            raise TypeError('Return values does not match function value')
         self.quadruples.append([tokens.RETURN, None, None, direction])
 
     def generate_go_to_f(self):
