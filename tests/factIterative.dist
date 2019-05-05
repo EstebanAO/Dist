@@ -1,0 +1,19 @@
+program factIterative;
+
+fun fact(a:int) : int {
+    var i, res:int;
+    i = 1;
+    res = 1;
+    while (i <= a) {
+        res = res * i;
+        i = i + 1;
+    };
+    return res;
+}
+
+main {
+    print(fact(5));
+}
+
+// resultado esperado
+// 120

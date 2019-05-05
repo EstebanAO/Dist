@@ -1,0 +1,34 @@
+program fibIterative;
+
+fun fib(n:int):void {
+    var f1, f2, i: int;
+    f1 = 1;
+    f2 = 1; 
+    print(f1);
+    i = 2;
+    while (i <= n) {
+        print(f2);
+        f2 = f1 + f2;
+        f1 = f2 - f1;
+        i = i + 1;
+    };
+}
+
+main {
+    fib(11);
+}
+
+/*
+resultados esperados:
+    1
+    1
+    2
+    3
+    5
+    8
+    13
+    21
+    34
+    55
+    89
+*/

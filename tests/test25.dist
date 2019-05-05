@@ -1,0 +1,9 @@
+program test25;
+
+fun hola() : void {
+    return 2;
+}
+
+main{
+    print(hola());
+}

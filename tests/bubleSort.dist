@@ -1,0 +1,71 @@
+program bubleSort;
+
+var arr[10] : int;
+
+fun printArray(arr[10] : int) : void{
+    var i, n : int;
+    i = 0;
+    n = 10;
+    print("El resultado es: ");
+    while(i < n){
+        print(arr[i]);
+        i = i + 1;
+    };
+}
+
+fun bubleSort(arr[10] : int) : void{
+    var i, j, temp, n : int;
+    n = 10;
+    i = 0;
+    while(i < n - 1){
+        j = 0;
+        while(j < n - i - 1){
+            if (arr[j] > arr[j + 1]){
+                temp = arr[j];
+                arr[j] = arr[j+1];
+                arr[j + 1] = temp;
+            };
+            j = j + 1;
+        };
+        i = i + 1;
+    };
+    printArray(arr);
+}
+
+main{
+    var i : int;
+    i = 0;
+    while(i < 10){
+        read(arr[i]);
+        i = i + 1;
+    };
+
+    bubleSort(arr);
+}
+
+/* 
+Input:
+56
+43
+89
+21
+39
+75
+40
+1
+32
+35
+
+Output:
+El resultado es:
+1
+21
+32
+35
+39
+40
+43
+56
+75
+89
+*/
