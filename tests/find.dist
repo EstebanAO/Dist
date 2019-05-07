@@ -17,13 +17,15 @@ main{
     var arr[10] : char;
     var i : int;
     var val : char;
-    val = 'r';
     i = 0;
+    println("Ingresa 10 caracteres separados por un enter: ");
     while(i < 10){
         read(arr[i]);
         i = i + 1;
     };
 
+    print("Ingresa el caracter que se buscara en el arreglo: ");
+    read(val);
     if (find(val, arr)){
         print("Se encontro: ", val);
     } else {

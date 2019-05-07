@@ -1,34 +1,21 @@
 program fibIterative;
 
-fun fib(n:int):void {
+fun fibonacci(n:int):int {
     var f1, f2, i: int;
     f1 = 1;
     f2 = 1; 
-    print(f1);
     i = 2;
-    while (i <= n) {
-        print(f2);
+    while (i < n) {
         f2 = f1 + f2;
         f1 = f2 - f1;
         i = i + 1;
     };
+    return f2;
 }
 
 main {
-    fib(100);
+    var fib : int;
+    print("Ingresa el numero para obtener su fibonacci iterativamente: ");
+    read(fib);
+    println("El fibonacci de ", fib, " es: ", fibonacci(fib));
 }
-
-/*
-resultados esperados:
-    1
-    1
-    2
-    3
-    5
-    8
-    13
-    21
-    34
-    55
-    89
-*/

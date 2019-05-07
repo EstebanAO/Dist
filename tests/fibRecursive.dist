@@ -1,7 +1,7 @@
 program fibRecursive;
 
-fun fibonacci(n:float) : float {
-  var a: float;
+fun fibonacci(n:int) : int {
+  var a: int;
     if(n == 0){
         return 0;
     } else {
@@ -14,5 +14,8 @@ fun fibonacci(n:float) : float {
 }
 
 main {
-    print(fibonacci(23.0));
+    var fib : int;
+    print("Ingresa el numero para obtener su fibonacci recursivamente: ");
+    read(fib);
+    println("El fibonacci de ", fib, " es: ", fibonacci(fib));
 }

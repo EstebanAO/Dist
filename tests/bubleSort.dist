@@ -6,9 +6,9 @@ fun printArray(arr[10] : int) : void{
     var i, n : int;
     i = 0;
     n = 10;
-    print("El resultado es: ");
+    println("Los numeros ordenados son: ");
     while(i < n){
-        print(arr[i]);
+        println(arr[i]);
         i = i + 1;
     };
 }
@@ -35,6 +35,7 @@ fun bubleSort(arr[10] : int) : void{
 main{
     var i : int;
     i = 0;
+    println("Ingresa 10 numeros enteros separados por un enter para ordenarlos: ");
     while(i < 10){
         read(arr[i]);
         i = i + 1;
@@ -42,30 +43,3 @@ main{
 
     bubleSort(arr);
 }
-
-/* 
-Input:
-56
-43
-89
-21
-39
-75
-40
-1
-32
-35
-
-Output:
-El resultado es:
-1
-21
-32
-35
-39
-40
-43
-56
-75
-89
-*/

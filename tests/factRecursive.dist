@@ -1,17 +1,17 @@
 program factRecursive;
 
-fun fact(a:int) : int {
+fun factorial(a:int) : int {
     if (a == 0) {
         return 1;
     }
     else {
-        return a * fact(a - 1);
+        return a * factorial(a - 1);
     };
 }
 
 main {
-    print(fact(5));
+    var fact : int;
+    print("Ingresa el numero para obtener su factorial recursivamente: ");
+    read(fact);
+    println("El factorial de ", fact, " es: ", factorial(fact));
 }
-
-// resultado esperado
-// 120

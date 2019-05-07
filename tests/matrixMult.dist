@@ -8,10 +8,10 @@ fun multMatrices(a[2][3]:int, b[3][2]:int):void {
     r2 = 3;
     c2 = 2;
     if (c1 != r2) {
-        print("Matrices cannot be multiplied!");
+        println("Las matrices no pueden ser multiplicadas.");
     }	
     else {
-        print("Enter elements of matrix A : ");
+        println("Ingresa los elementos de la matriz A[2][3] : ");
         i = 0;
         while (i < r1) {
             j = 0;
@@ -21,7 +21,7 @@ fun multMatrices(a[2][3]:int, b[3][2]:int):void {
             };
             i = i + 1;
         };
-        print("Enter elements of matrix B : ");
+        println("Ingresa los elementos de la matriz B[3][2] : ");
         i = 0;
         while (i < r2) {
             j = 0;
@@ -48,7 +48,7 @@ fun multMatrices(a[2][3]:int, b[3][2]:int):void {
             i = i + 1;
         };
 
-        print("Product of matrices: ");
+        println("Producto de matrices: ");
         i = 0;
         while (i < r1) {
             j = 0;
