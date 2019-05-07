@@ -14,16 +14,16 @@ dim_two = ''
 
 dist                            : programa EOF {c.print_quad()} {c.write_quadruples()};
 programa                        : PROGRAM ID {c.save_program_name($ID.text)} ';' ((varss| vars_arreglo) ';')* {c.generate_go_to_main()} funcion* MAIN {c.complete_go_to_main()} {c.switch_context('main')} {c.add_function_type('void')}bloque_local;
-expresion                       : exp_and ('||'{c.push_operator('||')} exp_and)*;
-exp_and                         : exp_comp ('&&' {c.push_operator('&&')} exp_comp)*{c.generate_operation_quadruple('||')};
+expresion                       : exp_and ('||'{c.push_operator(tokens.OR)} exp_and)*;
+exp_and                         : exp_comp ('&&' {c.push_operator(tokens.AND)} exp_comp)*{c.generate_operation_quadruple(tokens.OR)};
 rel_op                          : ('<' | '>' | '!=' | '<=' | '>=' | '==');
-exp_comp                        : exp ( rel_op {c.push_operator($rel_op.text)} exp {c.generate_operation_quadruple('>')})? {c.generate_operation_quadruple('&&')};
-exp                             : termino (('+' {c.push_operator('+')} | '-'{c.push_operator('-')}) termino)*;
-termino                         : factor (('*' {c.push_operator('*')} | '/' {c.push_operator('/')}) factor)* {c.generate_operation_quadruple('+')};
+exp_comp                        : exp ( rel_op {c.push_operator($rel_op.text)} exp {c.generate_operation_quadruple(tokens.GREATER)})? {c.generate_operation_quadruple(tokens.AND)};
+exp                             : termino (('+' {c.push_operator(tokens.PLUS)} | '-'{c.push_operator(tokens.MINUS)}) termino)*;
+termino                         : factor (('*' {c.push_operator(tokens.MULT)} | '/' {c.push_operator(tokens.DIV)}) factor)* {c.generate_operation_quadruple(tokens.PLUS)};
 sign                            : ('+' | '-');
-factor                          : ((sign? '(' {c.push_operator('(')} expresion ')'{c.change_sign($sign.text)}{c.pop_operator()}) | (sign? var_cte {c.change_sign($sign.text)})) {c.generate_operation_quadruple('*')};
+factor                          : ((sign? '(' {c.add_fake_bottom()} expresion ')'{c.change_sign($sign.text)}{c.remove_fake_bottom()}) | (sign? var_cte {c.change_sign($sign.text)})) {c.generate_operation_quadruple('*')};
 var_cte                         : cte {c.push_constant_data($cte.text)} | ID {c.push_variable_data($ID.text)} | llamada_funcion | posicion_arreglo | llamada_funcion_especial;
-cte                             : (CTE_I {c.current_cte_type = 'int'} | CTE_F {c.current_cte_type = 'float'} | CTE_C {c.current_cte_type = 'char'} | CTE_B {c.current_cte_type = 'bool'});
+cte                             : (CTE_I {c.current_cte_type = tokens.INT} | CTE_F {c.current_cte_type = tokens.FLOAT} | CTE_C {c.current_cte_type = tokens.CHAR} | CTE_B {c.current_cte_type = tokens.BOOL});
 lectura                         : READ '(' ((ID {c.generate_read_quadruple($ID.text)}) | (posicion_arreglo {c.generate_read_array_quadruple()})) ')';
 escritura                       : PRINT '(' (expresion | CTE_STRING {c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}) {c.generate_print_quadruple()} (',' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}){c.generate_print_quadruple()})* ')';
 escritura_nueva_linea           : PRINT_NEW_LINE '('( (expresion | CTE_STRING {c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}) {c.generate_print_quadruple()} (',' (expresion | CTE_STRING{c.current_cte_type = 'str'}{c.push_constant_data($CTE_STRING.text)}){c.generate_print_quadruple()})* )? ')'{c.add_new_line()};
