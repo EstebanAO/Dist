@@ -1,0 +1,59 @@
+program funcionesEspeciales;
+
+main{
+    var arr[30] : int;
+    var i: int;
+    
+    arr[0] = 5;
+    arr[1] = 1;
+    arr[2] = 3;
+    arr[3] = 3;
+    arr[4] = 1;
+    arr[5] = 5;
+    arr[6] = 5;
+    arr[7] = 6;
+    arr[8] = 4;
+    arr[9] = 6;
+    arr[10] = 7;
+    arr[11] = 9;
+    arr[12] = 2;
+    arr[13] = 4;
+    arr[14] = 7;
+    arr[15] = 7;
+    arr[16] = 6;
+    arr[17] = 5;
+    arr[18] = 4;
+    arr[19] = 8;
+    arr[20] = 7;
+    arr[21] = 2;
+    arr[22] = 3;
+    arr[23] = 2;
+    arr[24] = 8;
+    arr[25] = 8;
+    arr[26] = 6;
+    arr[27] = 5;
+    arr[28] = 3;
+    arr[29] = 4;
+
+    var p : float;
+
+    p = prob(arr, 2);
+
+    println("Pow 3 ^ 3: ", 2 * pow(3.0, 3.0));
+    println("Sqrt 3 raiz 3: ", sqrt(3.0,3.0));
+    println("Mode: ", mode(arr));
+    println("Prob: ",p);
+    println("Moment: ", moment(arr, 4));
+    println("Median: ", median(arr));
+    println("Var : ", var(arr));
+    println("Exp bernoulli : ", exp_bernoulli(p));
+    println("Var bernoulli : ", var_bernoulli(p));
+    println("Prob binomial : ", prob_binomial(p, 30, 5));
+    println("Exp binomial : ", exp_binomial(p, 30));
+    println("Var binomial : ", var_binomial(p, 30));
+    println("Prob geometric : ", prob_geometric(p, 30));
+    println("Exp geometric : ", exp_geometric(p));
+    println("Var geometric : ", var_geometric(p));
+    plot_histogram(arr);
+   
+}
