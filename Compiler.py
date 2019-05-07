@@ -6,7 +6,7 @@ from semantic_cube import SEM_CUBE
 
 class Compiler:
     def __init__(self):
-        #Counters
+        #Counters of limits
         self.g_char = limits.G_CHAR - 1
         self.g_int = limits.G_INT - 1
         self.g_bool = limits.G_BOOL - 1
@@ -35,11 +35,11 @@ class Compiler:
                 tokens.TYPE: tokens.VOID,
                 tokens.VARS: {},
                 tokens.PARAMS: [],
-                tokens.START: -1
+                tokens.START: -1   #Start of the function
             }
         }
 
-        # Quadruple
+        # Quadruple logic
         self.cte_values = {}
         self.temporal = 0
         self.quadruples = []
@@ -59,6 +59,7 @@ class Compiler:
     def push_id(self, id):
         self.pending_ids.append(id)
 
+    # Retrieve a new direction given a specific type
     def get_variable_direction(self, type):
         if type == tokens.INT:
             if self.current_function == tokens.GLOBAL:
@@ -105,6 +106,7 @@ class Compiler:
                 self.l_float += 1
                 return self.l_float
 
+    # Retrieve a new direction given a specific type
     def get_pointer_direction(self, type):
         if type == tokens.INT:
             if self.p_int + 1 >= limits.P_INT + limits.MEMORY_RANGE:
@@ -127,6 +129,7 @@ class Compiler:
             self.p_float += 1
             return self.p_float
 
+    """Add the variables in the pending ids stack to the functions table"""
     def add_variables(self, type):
         while (len(self.pending_ids) > 0):
             name = self.pending_ids.pop()
@@ -136,6 +139,8 @@ class Compiler:
             self.functions[self.current_function][tokens.VARS][name] = [type, direction, None, None]
             self.quadruples.append([tokens.INI_VAR, None, None, direction])
 
+    """Restarts the local direction counters and adds
+       a new function to the functions table"""
     def switch_context(self, function_name):
         self.l_char = limits.L_CHAR - 1
         self.l_int = limits.L_INT - 1
@@ -150,6 +155,7 @@ class Compiler:
             raise NameError('Function ', function_name, ' already exists')
         self.functions[function_name] = {tokens.TYPE: "", tokens.VARS: {}, tokens.PARAMS: [], tokens.START: len(self.quadruples)}
 
+    """ Add one unit to the variable counter of certain type"""
     def update_direction_counter(self, type, count):
         if type == tokens.CHAR:
             if self.current_function == tokens.GLOBAL:
@@ -188,6 +194,7 @@ class Compiler:
                     raise MemoryError('Memory error')
                 self.l_float += count
 
+    """ Adds an array to the variables table and generates fill array quadruple"""
     def add_array_one_dim(self, dim_one, type, is_param = False):
         name = self.current_variable
         if dim_one < 1:
@@ -198,6 +205,7 @@ class Compiler:
         if not is_param:
             self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one])
 
+    """ Adds a matrix to the variables table and generates fill array quadruple"""
     def add_array_two_dim(self, dim_one, dim_two, type, is_param = False):
         self.print_tables()
         name = self.current_variable
@@ -209,13 +217,16 @@ class Compiler:
         if not is_param:
             self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one * dim_two])
 
+    """ Adds the type to an existing variable in the variable table """
     def add_type(self, type):
         self.functions[self.current_function][tokens.VARS][self.current_variable][0] = type
         self.functions[self.current_function][tokens.VARS][self.current_variable][1] = self.get_variable_direction(type)
 
+    """ Adds the function type to an existing function """
     def add_function_type(self, function_type):
         self.functions[self.current_function][tokens.TYPE] = function_type
 
+    """ Adds a param to the variable table of a function"""
     def add_param(self, name):
         self.current_variable = name
         if name in self.functions[self.current_function][tokens.VARS]:
@@ -223,6 +234,7 @@ class Compiler:
         self.functions[self.current_function][tokens.VARS][self.current_variable] = ['', None, None, None]
         self.functions[self.current_function][tokens.PARAMS].append(name)
 
+    """ It is a tool to the programmer to interpret the intermediate code """
     def print_tables(self):
         for func, value in self.functions.items():
             print('Funcion: ', func, value[tokens.TYPE])
@@ -235,7 +247,7 @@ class Compiler:
                 print("      Dim 2    : ", data[3])
 
     # Quadruples logic
-    #  arrVar [valor, tipoValor, tipoEstructura, pos1, pos2 ]
+    """ Push a new variable to p_values """
     def push_variable_data(self, id):
         var_context = self.get_variable_context(id)
         if var_context == None:
@@ -243,6 +255,7 @@ class Compiler:
         variable = self.functions[var_context][tokens.VARS][id]
         self.p_values.append(variable[1])
 
+    """ Push a new constant to p_values """
     def push_constant_data(self, value):
         if self.current_cte_type == tokens.INT:
             self.c_int += 1
@@ -265,6 +278,8 @@ class Compiler:
             self.p_values.append(self.c_string)
             self.cte_values[self.c_string] = value
     
+    """ Multipies by -1 a certain expresion if it has a "-" at
+        its left  """
     def change_sign(self, sign):
         if sign == "-":
             self.current_cte_type = tokens.INT
@@ -275,13 +290,16 @@ class Compiler:
             direction = self.get_variable_direction(value_type)
             self.quadruples.append([tokens.MULT, negative, value, direction])
             self.p_values.append(direction)
-
+    
+    """ Pushes an operator to the p_operators stack """
     def push_operator(self, operator):
         self.p_operators.append(operator)
 
+    """ Pops an operator to the p_operators stack """
     def pop_operator(self):
         self.p_operators.pop()
 
+    """ Retruns the token_type of a given direction """
     def get_direction_type(self, direction):
         direction = int(direction)
         if direction < limits.G_CHAR + limits.MEMORY_RANGE:
@@ -319,6 +337,7 @@ class Compiler:
         else:
             return tokens.STRING
 
+    """ Generates an arithmetic, logic or relational quadruple """
     def generate_operation_quadruple(self, hierarchy):
         if len(self.p_operators) == 0:
             return
@@ -347,6 +366,7 @@ class Compiler:
             self.quadruples.append([operator, left_operand, right_operand, new_direction])
             self.p_values.append(new_direction)
 
+    """ Obtain the direction of a variable given the id """
     def get_variable(self, id):
         var_context = self.get_variable_context(id)
         if var_context == None:
@@ -354,6 +374,7 @@ class Compiler:
         variable = self.functions[var_context][tokens.VARS][id]
         return variable[1]
 
+    """ Generates the ASSIGN quadruple """
     def generate_assign_quadruple(self, to_assign_direction):
         assign_value_direction = self.p_values.pop()
         to_assign_type = self.get_direction_type(to_assign_direction)
@@ -363,15 +384,19 @@ class Compiler:
             raise NameError('Type Mismatch Error: ', to_assign_type , ' does not match ', assign_value_type)
         self.quadruples.append([tokens.ASSIGN, assign_value_direction, None, to_assign_direction])
 
+    """ Generates the quadruple that prints only an end of line """
     def add_new_line(self):
         self.quadruples.append([tokens.PRINT_NEW_LINE, None, None, None])
 
+    """ Generates the quadruple that prints the value given"""
     def generate_print_quadruple(self):
         self.quadruples.append([tokens.PRINT, None, None, self.p_values.pop()])
 
+    """ Generates read quadruple for a matrix or an array"""
     def generate_read_array_quadruple(self):
         self.quadruples.append([tokens.READ, None, None, self.p_values.pop()])
 
+    """ Generates read quadruple for an atomic variable"""
     def generate_read_quadruple(self, id):
         var_context = self.get_variable_context(id)
         if var_context == None:
@@ -379,13 +404,16 @@ class Compiler:
         direction = self.functions[var_context][tokens.VARS][id][1]
         self.quadruples.append([tokens.READ, None, None, direction])
     
+    """ Verifies that the value inside the brakets of a 
+        position in an array is an integer """
     def verify_pos_type(self):
         direction = self.p_values[-1]
         type = self.get_direction_type(direction)
         if type != tokens.INT:
             raise TypeError('Array index must be integer')
 
-    #Conditionals
+    """ Generates the return value and verifies that a return must be in a
+        non void function """
     def generate_return_quadruple(self):
         if self.functions[self.current_function][tokens.TYPE] == tokens.VOID:
             raise Exception("Void functions can't return a value")
@@ -395,6 +423,7 @@ class Compiler:
             raise TypeError('Return values does not match function value')
         self.quadruples.append([tokens.RETURN, None, None, direction])
 
+    """ Creates the go to false quadruple without the index of the go to """
     def generate_go_to_f(self):
         self.add_breadcrumb()
         condition = self.p_values.pop()
@@ -402,33 +431,42 @@ class Compiler:
             raise TypeError('If statements must evaluate boolean values')
         self.quadruples.append([tokens.GO_TO_F, condition, None, None])
 
+    """ Fills the index field of the go to false quadruple """
     def complete_go_to_f(self):
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index][3] = len(self.quadruples)
 
+    """ Generates a quadruple for the program to start on main function """
     def generate_go_to_main(self):
         self.quadruples.append([tokens.GO_TO, None, None, None])
         self.p_jumps.append(len(self.quadruples))
 
+    """ Fills the index field of the go to main """
     def complete_go_to_main(self):
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index-1][3] = len(self.quadruples)
 
+    """ generates a go to for the program to ignore the "if" portion of the code"""
     def generate_else_go_to(self):
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index][3] = len(self.quadruples) + 1
         self.add_breadcrumb()
         self.quadruples.append([tokens.GO_TO, None, None, None])
 
+    """ Adds an index of quadruples that needs to be filled with 
+        another quadruple index """
     def add_breadcrumb(self):
         self.p_jumps.append(len(self.quadruples))
 
+    """ Creates a got to at the end of a while block """
     def end_of_while(self):
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index][3] = len(self.quadruples) + 1
         quad_index = self.p_jumps.pop()
         self.quadruples.append([tokens.GO_TO, None, None, quad_index])
 
+    """ Assign a param from the calling method to the called method,
+        it verifies the number of params, the types and dimentions """
     def assign_param_direction(self, function_call):
         function = self.functions[function_call]
         if self.c_function_params >= len(function[tokens.PARAMS]):
@@ -456,6 +494,7 @@ class Compiler:
         else:
             self.quadruples.append([tokens.ASSIGN_PARAM, argument, None, var_direction])
 
+    """ Retruns the size of an array or matriz given its direction """
     def get_size_array(self, direction):
         for value in self.functions[self.current_function][tokens.VARS].items():
             if value[1][1] == direction:
@@ -474,7 +513,8 @@ class Compiler:
                 elif (dim_one != None):
                     return [dim_one[0], None]
 
-
+    """ Returns true if the direction represents a non-atomic varaible
+         or falseif it is an atomic variable """
     def is_array(self, direction):
         for value in self.functions[self.current_function][tokens.VARS].items():
             if value[1][1] == direction and value[1][2] != None:
@@ -483,10 +523,13 @@ class Compiler:
             if value[1][1] == direction and value[1][2] != None:
                 return True
         return False
-
+    
+    """ Generates an ERA quadruple """
     def generate_era_quadruple(self):
         self.quadruples.append([tokens.ERA, None, None, None])
 
+    """ Generates a quadruple that takes the program to certain function,
+        it generates the return temporal direction """
     def generate_go_sub_quadruple(self, name):
         function = self.functions[name]
         start_direction = function[tokens.START]
@@ -505,7 +548,7 @@ class Compiler:
     def remove_fake_bottom(self):
         self.p_operators.pop()
 
-    # function that receives a variable id and returns its corresponding context
+    """ Receives a variable id and returns its corresponding context """
     def get_variable_context(self, var_id):
         if var_id in self.functions[self.current_function][tokens.VARS]:
             return self.current_function
@@ -514,20 +557,22 @@ class Compiler:
         else:
             return None
 
-    # function that raises an error when the variable is not a one dimension array
+    """ Raises an error when the variable is not a one dimension array """
     def verify_one_dim_array(self, function_id, var_id):
         if self.functions[function_id][tokens.VARS][var_id][2] == None:
             raise TypeError('Variable: ', var_id, ' is not an array')
         if self.functions[function_id][tokens.VARS][var_id][3] != None:
             raise TypeError('Variable: ', var_id, ' is a two dimention array')
 
-    # function that raises an error when the variable is not a two dimension array
+    """ Raises an error when the variable is not a two dimension array """
     def verify_two_dim_array(self, function_id, var_id):
         if self.functions[function_id][tokens.VARS][var_id][2] == None:
             raise TypeError('Variable: ', var_id, ' is not an array')
         if self.functions[function_id][tokens.VARS][var_id][3] == None:
             raise TypeError('Variable: ', var_id, ' is not a two dimention array')
 
+    """ When accessing a non-atomic variable it verifies the number of dimentions
+        and the limits of the dimention """
     def access_array_dim_one(self, id):
         array_context = self.get_variable_context(id)
         if array_context == None:
@@ -541,14 +586,17 @@ class Compiler:
         value = self.p_values.pop()
         temp_direction = self.get_pointer_direction(type)
 
-        self.quadruples.append([tokens.VER, value, None, dim_one])
+        self.quadruples.append([tokens.VER, value, None, dim_one]) # Verify limits
         self.current_cte_type = tokens.INT
         self.push_constant_data(direction)
         constant = self.p_values.pop()
+        #Sum the base direction with the offset
         self.quadruples.append([tokens.PLUS_POINTER, value, constant, temp_direction])
         self.p_values.append(temp_direction) # push pointer to array position
         self.p_operators.pop() # pop fake bottom
 
+    """ When accessing a non-atomic variable it verifies the number of dimentions
+        and the limits of the dimention """
     def access_array_dim_two(self, id):
         array_context = self.get_variable_context(id)
         if array_context == None:
@@ -561,10 +609,10 @@ class Compiler:
         base_direction = self.functions[array_context][tokens.VARS][id][1]
         type = self.functions[array_context][tokens.VARS][id][0]
 
-        pos_2 = self.p_values.pop()
-        pos_1 = self.p_values.pop()
+        pos_2 = self.p_values.pop() # Dim 2 value
+        pos_1 = self.p_values.pop() # Dim 1 value
 
-        self.quadruples.append([tokens.VER, pos_1, None, dim_one])
+        self.quadruples.append([tokens.VER, pos_1, None, dim_one]) # Verify limits dim 1
 
         self.current_cte_type = tokens.INT
         self.push_constant_data(m)
@@ -573,9 +621,8 @@ class Compiler:
         t_jump = self.get_variable_direction(tokens.INT)
 
         self.quadruples.append([tokens.MULT, pos_1, m_direction, t_jump])
-#        self.p_values.append(t_jump)
 
-        self.quadruples.append([tokens.VER, pos_2, None, dim_two])
+        self.quadruples.append([tokens.VER, pos_2, None, dim_two]) # Verify limits dim 2
 
         t_offset = self.get_variable_direction(tokens.INT)
         self.quadruples.append([tokens.PLUS, t_jump, pos_2, t_offset])
@@ -585,26 +632,31 @@ class Compiler:
         constant = self.p_values.pop()
         temp_direction = self.get_pointer_direction(type)
 
-        self.quadruples.append([tokens.PLUS_POINTER, t_offset, constant, temp_direction])
+        #Sum the base direction with the offset
+        self.quadruples.append([tokens.PLUS_POINTER, t_offset, constant, temp_direction]) 
         self.p_values.append(temp_direction) # push pointer to array position
-        self.p_operators.pop()
+        self.p_operators.pop() # pop fake bottom
 
     def generate_end_proc(self):
         self.quadruples.append([tokens.END_PROC, None, None, None])
 
     # Special Functions
+    """ Verifies that the peek of p_values is a float """
     def verify_float(self):
         if self.get_direction_type(self.p_values[-1]) != tokens.FLOAT:
             raise NameError('Special function must have a float as parameter')
     
+    """ Verifies that the peek of p_values is an integer """
     def verify_int(self):
          if self.get_direction_type(self.p_values[-1]) != tokens.INT:
              raise NameError('Special function must have a float as parameter')
     
+    """ Verifies that the peek of p_values is an array """
     def verify_array(self):
         if not self.is_array(self.p_values[-1]):
             raise NameError('Special function must have a float as parameter')
     
+    """ Generates the quadruples of every special function given a code name"""
     def generate_quadruple_special_func(self, func_name):
         if func_name == tokens.POW:
             power = self.p_values.pop()
@@ -661,8 +713,10 @@ class Compiler:
             prob = self.p_values.pop()
             return_value = self.get_variable_direction(tokens.FLOAT)
             self.p_values.append(return_value)
+            # We needed a quintuple that why we added 2 quadruples to fill all the 
+            #   required parameters of a binomial function
             self.quadruples.append([tokens.PROB_BINOMIAL, None, None, return_value])
-            self.quadruples.append([None, prob, n, k])
+            self.quadruples.append([None, prob, n, k]) 
         elif func_name == tokens.EXP_BINOMIAL:
             n = self.p_values.pop()
             p = self.p_values.pop()
@@ -695,12 +749,7 @@ class Compiler:
             array_dir = self.p_values.pop()
             self.quadruples.append([tokens.PLOT_HISTOGRAM, array_dir, None, None])
 
-    def print_quad(self):
-        self.print_tables()
-        print(self.cte_values)
-        for idx, quad in enumerate(self.quadruples):
-            print(str(idx) + " : " , quad)
-
+    """ Writes the quadruples in a intermediate code file """
     def write_quadruples(self):
         quadruples = [self.quadruples, self.cte_values, self.functions['main'][tokens.START]]
         file_name = self.program_name + '.stv'
@@ -708,6 +757,14 @@ class Compiler:
         pickle.dump(quadruples, file)
         file.close()
 
+    """ Prints all the quadruples """
+    def print_quad(self):
+        self.print_tables()
+        print(self.cte_values)
+        for idx, quad in enumerate(self.quadruples):
+            print(str(idx) + " : " , quad)
+
+    """ Prints piles for the developers of Dist to fix bugs """
     def print_piles(self):
         print(self.p_values)
         print(self.p_operators)
