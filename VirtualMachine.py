@@ -6,6 +6,7 @@ import SpecialFunctions
 
 from collections import deque
 
+""" This class reads and handles all the quadruples """
 class VirtualMachine:
     def __init__(self):
         # Compiler Data

@@ -4,6 +4,7 @@ import limits
 from collections import deque
 from semantic_cube import SEM_CUBE
 
+""" This class checks sintaxis, some sematics and compiles the Dist code """
 class Compiler:
     def __init__(self):
         #Counters of limits

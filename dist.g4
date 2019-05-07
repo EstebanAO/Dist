@@ -4,7 +4,6 @@ grammar dist;
 from Compiler import Compiler
 import tokens
 c = Compiler()
-id_arr = ''
 quad_assign = ''
 function_call = ''
 dim_one = ''
