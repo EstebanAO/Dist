@@ -246,6 +246,8 @@ class VirtualMachine:
             elif (quad[0] == tokens.MULT):
                 self.set_variable_value(quad[3], value_left * value_right)
             elif (quad[0] == tokens.DIV):
+                if (value_right == 0):
+                    raise ZeroDivisionError('Division by cero is undefined')
                 val = value_left / value_right
                 if self.get_direction_type(quad[1]) == tokens.INT and self.get_direction_type(quad[2]) == tokens.INT:
                     val = int(value_left / value_right)
