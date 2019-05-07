@@ -38,8 +38,8 @@ ERA = 'era'
 GO_SUB = 'go_sub'
 FILL_ARRAY = 'fill_array'
 VER = 'ver'
-PLUS_POINTER = "++"
-ASSIGN_PARAM = '= param'
+PLUS_POINTER = "plus_pointer"
+ASSIGN_PARAM = 'assign_param'
 ASSIGN_ARRAY_PARAM = '= array_param'
 INI_VAR = 'ini_var'
 POW = 'pow'
