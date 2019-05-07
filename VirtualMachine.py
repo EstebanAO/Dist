@@ -22,17 +22,15 @@ class VirtualMachine:
         self.temp_return_value = ""
         self.temp_to_return_direction = []
 
-    def print_quad(self):
-        print(self.constants)
-        for idx, quad in enumerate(self.quadruples):
-            print(str(idx) + " : " , quad)
-
+    """ Retruns true if the direction provided is a pointer, false otherwise """
     def is_pointer(self, direction):
         return direction >= limits.P_CHAR and direction < limits.P_FLOAT + limits.MEMORY_RANGE
 
+    """ Retruns the value of a pointer (it is a direction) """
     def get_pointer_value(self, direction):
         return self.local[-1][int(direction / limits.MEMORY_RANGE) - 4][direction % limits.MEMORY_RANGE]
 
+    """ Retruns the value of a non pointer direction """
     def get_variable_value(self, direction):
         if self.is_pointer(direction):
             return self.get_variable_value(self.get_pointer_value(direction))
@@ -43,10 +41,12 @@ class VirtualMachine:
         else:
             return self.constants[direction]
 
+    """ Cast all the constants received from the compiler to their correct type """
     def cast_constants(self):
         for key, value in self.constants.items():
             self.constants[key] = self.cast_type(key, value)
 
+    """ Casts a single value to the correct type according to the direction provided """
     def cast_type(self, direction, value):
         if self.is_pointer(direction):
             return value
@@ -86,6 +86,7 @@ class VirtualMachine:
         else:
             return value[1:-1]
 
+    """ retrun the type-token given a direction """
     def get_direction_type(self, direction):
         if direction < limits.G_CHAR + limits.MEMORY_RANGE:
             return tokens.CHAR
@@ -122,6 +123,7 @@ class VirtualMachine:
         else:
             return tokens.STRING
 
+    """ Retruns the default values of the four elemental types of Dist """
     def get_default_value(self, index_type):
         if index_type in [0, 4]:
             return 'a'
@@ -131,7 +133,9 @@ class VirtualMachine:
             return 'false'
         elif index_type in [3, 7]:
             return 0.0
-
+    
+    """ Generates all the memory spaces of the global context until
+        the index limit is reached """
     def generate_memory_global(self, index_type, index_limit):
         global_size = len(self.global_var[index_type])
         value = self.get_default_value(index_type)
@@ -139,6 +143,8 @@ class VirtualMachine:
             self.global_var[index_type].append(value)
             global_size += 1
 
+    """ Generates all the memory spaces of the local context until
+        the index limit is reached """
     def generate_memory_local(self, index_type, index_limit):
         local_size = len(self.local[-1][index_type])
         value = self.get_default_value(index_type)
@@ -146,6 +152,7 @@ class VirtualMachine:
             self.local[-1][index_type].append(value)
             local_size += 1
 
+    """ Creates the space of an array in memory """
     def fill_array(self, direction):
         if direction < limits.L_CHAR:
             index_type = int(direction / limits.MEMORY_RANGE)
@@ -158,12 +165,14 @@ class VirtualMachine:
             self.generate_memory_local(index_type, index_limit)
             self.local[-1][index_type][index_limit] = '@'
 
+    """ Sets the value of a pointer """
     def set_initial_pointer_value(self, direction, value):
         index_type = int(direction / limits.MEMORY_RANGE) - 4
         index_limit = direction % limits.MEMORY_RANGE
         self.generate_memory_local(index_type, index_limit)
         self.local[-1][index_type][index_limit] = value
 
+    """ Sets the value of a variable """
     def set_variable_value(self, direction, value):
         if self.is_pointer(direction):
             direction = self.get_pointer_value(direction)
@@ -184,11 +193,13 @@ class VirtualMachine:
             else:
                 self.local[-1][index_type][index_limit] = '@'
 
+    """ This function prints relevant data to the developers of dist """
     def print_stuff(self):
         print('\n')
         print(self.global_var)
         print(self.local)
-
+    
+    """ Function to read from console and set the value to a given direction """
     def read_function(self, direction):
         type = self.get_direction_type(direction)
         try:
@@ -210,35 +221,40 @@ class VirtualMachine:
         except:
             raise TypeError('Read type error')
 
+    """ Assign the value to sender direction to the temporal params dictionary """
     def assign_param(self, sender_direction, receiver_direction):
         value = self.get_variable_value(sender_direction)
         self.params[receiver_direction] = value
 
+    """ Create new local context and asigns the params """
     def go_sub(self):
         self.local.append([[],[],[],[],[],[],[],[]])
         for key, value in self.params.items():
             self.set_variable_value(key, value)
-    
+
+    """ Copies the param array into the new local context  """
     def fill_params_array(self, start_dir, end_dir, new_start_dir):
         counter = 0
         for new_dir in range(start_dir, end_dir + 1):
             self.params[new_start_dir + counter] = self.get_variable_value(new_dir)
             counter += 1
-    
+
+    """ Create new variable space """
     def initialize_variable(self, direction):
         ini_value = self.get_default_value(int(direction/limits.MEMORY_RANGE))
         self.set_variable_value(direction, ini_value)
     
+    """ The handler of the Virtual Machine, it runs every quadruple"""
     def run(self, file_name):
         self.get_quadruples(file_name)
         self.local.append([[],[],[],[],[],[],[],[]])
         self.actual_index = self.start_index
         while(self.actual_index < len(self.quadruples)):
             quad = self.quadruples[self.actual_index]
-            if quad[1] != None and quad[0] != tokens.GO_SUB:
-                value_left = self.get_variable_value(quad[1])
+            if quad[1] != None and quad[0] != tokens.GO_SUB: 
+                value_left = self.get_variable_value(quad[1]) # Get Pos 1 value
             if quad[2] != None and quad[0] != tokens.GO_SUB:
-                value_right = self.get_variable_value(quad[2])
+                value_right = self.get_variable_value(quad[2]) # Get pos 2 value
             if (quad[0] == tokens.PLUS):
                 self.set_variable_value(quad[3], value_left + value_right)
             elif (quad[0] == tokens.MINUS):
@@ -391,6 +407,7 @@ class VirtualMachine:
             self.actual_index += 1
         self.print_stuff()
 
+    """ This functions internally converts an array to a pyhton list """
     def array_to_list(self, direction):
         list = []
         while self.get_variable_value(direction) != '@':
@@ -398,12 +415,12 @@ class VirtualMachine:
             direction += 1
         return list
 
+    """ Reads the quadruples from the .stv file that the compiler created """
     def get_quadruples(self, file_name):
         quad_file = open(file_name, 'rb')
         file_array = pickle.load(quad_file)
         self.quadruples = file_array[0]
         self.constants = file_array[1]
-        self.start_index = 0 # file_array[2]
+        self.start_index = 0
         self.cast_constants()
         quad_file.close()
-    #    self.print_quad()
