@@ -93,22 +93,29 @@ El siguiente es un pequeño programa integral en dist:
 
 ```
 program test;
+// Solo en esta zona son permitidas las variables globales
+var f : float;
 
 fun testFunction(i : float) : float{
+    f = 8.0;
     if (i == 5){
         return 9.0*7 * i;
     } else{
-        return 9.0/7 * i;
+        return 9.0/7 * i * f;;
     };
     
 }
 
 main{
+    /*
+        Este es un comentario
+        multilínea
+    */
     var f : float;
     while (f < 10){
         println(testFunction(f));
         f = f + 1;
-    }
+    };
 }
 ```
 
