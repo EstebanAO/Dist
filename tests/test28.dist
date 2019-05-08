@@ -9,3 +9,6 @@ main{
 
     println("i: ", i, " j: ", j);
 }
+
+// resultados esperados:
+// NameError: ('Variable: ', 'j', ' does not exist in context')

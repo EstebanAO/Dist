@@ -13,12 +13,12 @@ fun triple (n : int):int {
 main {
     var x:int;
     x = 1;
-    print("ey");
+    println("ey");
     //    2   1
     x = doble(x);
     //      48    16     8     4   2
-    print("valor: ", triple(doble(doble(doble(2)))));
-    print("adios");
+    println("valor: ", triple(doble(doble(doble(2)))));
+    println("adios");
 }
 
 // resultado esperado:

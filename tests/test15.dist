@@ -16,7 +16,7 @@ main {
     j = 0;
     while (j < 2) {
       arr[i][j] = arr[i][j] + arr[i][j];
-      print(arr[i][j]);
+      println(arr[i][j]);
       j = j + 1;
     };
     i = i + 1;

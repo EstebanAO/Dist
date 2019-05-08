@@ -1,6 +1,0 @@
-program quad_test;
-
-main {
-  var x: char;
-  x = 'r';
-}

@@ -7,7 +7,7 @@ from semantic_cube import SEM_CUBE
 """ This class checks sintaxis, some sematics and compiles the Dist code """
 class Compiler:
     def __init__(self):
-        #Counters of limits
+        # Counters of limits
         self.g_char = limits.G_CHAR - 1
         self.g_int = limits.G_INT - 1
         self.g_bool = limits.G_BOOL - 1
@@ -28,15 +28,15 @@ class Compiler:
 
         # Functions and variables tables
         self.program_name = ''
-        self.pending_ids = []
+        self.pending_ids = [] # Ids of variables declared in the same line
         self.current_function = tokens.GLOBAL
         self.current_variable = ''
         self.functions = {
             tokens.GLOBAL: {
                 tokens.TYPE: tokens.VOID,
-                tokens.VARS: {},
-                tokens.PARAMS: [],
-                tokens.START: -1   #Start of the function
+                tokens.VARS: {},  # "var_name" : [type, direction, [dim1, m1], [dim2, k]]
+                tokens.PARAMS: [], # ["param_name1", "param_name2",...]
+                tokens.START: -1   # Start of the function
             }
         }
 
@@ -49,10 +49,7 @@ class Compiler:
         self.current_cte_type = ''
         self.p_temporal = []
         self.p_jumps = []
-        self.c_function_params = 0
-
-        #Assign array
-        self.id_arr = ''
+        self.c_function_params = 0 
 
     def save_program_name(self, prog_name):
         self.program_name = prog_name
@@ -60,7 +57,7 @@ class Compiler:
     def push_id(self, id):
         self.pending_ids.append(id)
 
-    # Retrieve a new direction given a specific type
+    # Retrieve a new direction for a common variable given a specific type
     def get_variable_direction(self, type):
         if type == tokens.INT:
             if self.current_function == tokens.GLOBAL:
@@ -107,7 +104,7 @@ class Compiler:
                 self.l_float += 1
                 return self.l_float
 
-    # Retrieve a new direction given a specific type
+    # Retrieve a new direction for a pointer given a specific type
     def get_pointer_direction(self, type):
         if type == tokens.INT:
             if self.p_int + 1 >= limits.P_INT + limits.MEMORY_RANGE:
@@ -156,7 +153,7 @@ class Compiler:
             raise NameError('Function ', function_name, ' already exists')
         self.functions[function_name] = {tokens.TYPE: "", tokens.VARS: {}, tokens.PARAMS: [], tokens.START: len(self.quadruples)}
 
-    """ Add one unit to the variable counter of certain type"""
+    """Update the memory state when multiple addresses of a type were occupied"""
     def update_direction_counter(self, type, count):
         if type == tokens.CHAR:
             if self.current_function == tokens.GLOBAL:
@@ -195,20 +192,19 @@ class Compiler:
                     raise MemoryError('Memory error')
                 self.l_float += count
 
-    """ Adds an array to the variables table and generates fill array quadruple"""
+    """ Adds an array to the variables table and generates fill array quadruple """
     def add_array_one_dim(self, dim_one, type, is_param = False):
         name = self.current_variable
         if dim_one < 1:
-            raise IndexError('Array: ', name, ' size must be grater than zero')
+            raise IndexError('Array: ', name, ' size must be greater than zero')
         direction = self.get_variable_direction(type)
         self.functions[self.current_function][tokens.VARS][name] = [type, direction, [dim_one, 0], None]
         self.update_direction_counter(type, dim_one)
         if not is_param:
             self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one])
 
-    """ Adds a matrix to the variables table and generates fill array quadruple"""
+    """ Adds a matrix to the variables table and generates fill array quadruple """
     def add_array_two_dim(self, dim_one, dim_two, type, is_param = False):
-        self.print_tables()
         name = self.current_variable
         if dim_one < 1 or dim_two < 1:
             raise IndexError('Array: ', name, ' size must be grater than zero')
@@ -218,7 +214,7 @@ class Compiler:
         if not is_param:
             self.quadruples.append([tokens.FILL_ARRAY, None, None, direction + dim_one * dim_two])
 
-    """ Adds the type to an existing variable in the variable table """
+    """ Adds the type to the variable that is currently being added to the variable table """
     def add_type(self, type):
         self.functions[self.current_function][tokens.VARS][self.current_variable][0] = type
         self.functions[self.current_function][tokens.VARS][self.current_variable][1] = self.get_variable_direction(type)
@@ -235,7 +231,7 @@ class Compiler:
         self.functions[self.current_function][tokens.VARS][self.current_variable] = ['', None, None, None]
         self.functions[self.current_function][tokens.PARAMS].append(name)
 
-    """ It is a tool to the programmer to interpret the intermediate code """
+    """ Tool for the programmer to interpret the intermediate code """
     def print_tables(self):
         for func, value in self.functions.items():
             print('Funcion: ', func, value[tokens.TYPE])
@@ -248,6 +244,16 @@ class Compiler:
                 print("      Dim 2    : ", data[3])
 
     # Quadruples logic
+
+    """ Receives a variable id and returns its corresponding context """
+    def get_variable_context(self, var_id):
+        if var_id in self.functions[self.current_function][tokens.VARS]:
+            return self.current_function
+        elif var_id in self.functions[tokens.GLOBAL][tokens.VARS]:
+            return tokens.GLOBAL
+        else:
+            return None
+
     """ Push a new variable to p_values """
     def push_variable_data(self, id):
         var_context = self.get_variable_context(id)
@@ -259,38 +265,38 @@ class Compiler:
     """ Push a new constant to p_values """
     def push_constant_data(self, value):
         if self.current_cte_type == tokens.INT:
-            self.c_int += 1
-            self.p_values.append(self.c_int)
-            self.cte_values[self.c_int] = value
+            self.c_int += 1                         # updating the direction counter for integer constants
+            self.p_values.append(self.c_int)        # adding the integer constant to p_values stack
+            self.cte_values[self.c_int] = value     # adding the integer constant to the constants table
         elif self.current_cte_type == tokens.CHAR:
-            self.c_char += 1
-            self.p_values.append(self.c_char)
-            self.cte_values[self.c_char] = value
+            self.c_char += 1                        # updating the direction counter for char constants
+            self.p_values.append(self.c_char)       # adding the char constant to p_values stack
+            self.cte_values[self.c_char] = value    # adding the char constant to the constants table
         elif self.current_cte_type == tokens.FLOAT:
-            self.c_float += 1
-            self.p_values.append(self.c_float)
-            self.cte_values[self.c_float] = value
-        elif self.current_cte_type == tokens.BOOL:
-            self.c_bool += 1
-            self.p_values.append(self.c_bool)
-            self.cte_values[self.c_bool] = value
+            self.c_float += 1                       # updating the direction counter for float constants
+            self.p_values.append(self.c_float)      # adding the float constant to p_values stack
+            self.cte_values[self.c_float] = value   # adding the float constant to the constants table
+        elif self.current_cte_type == tokens.BOOL: 
+            self.c_bool += 1                        # updating the direction counter for bool constants
+            self.p_values.append(self.c_bool)       # adding the bool constant to p_values stack
+            self.cte_values[self.c_bool] = value    # adding the bool constant to the constants table
         elif self.current_cte_type == tokens.STRING:
-            self.c_string += 1
-            self.p_values.append(self.c_string)
-            self.cte_values[self.c_string] = value
+            self.c_string += 1                      # updating the direction counter for string constants
+            self.p_values.append(self.c_string)     # adding the string constant to p_values stack
+            self.cte_values[self.c_string] = value  # adding the string constant to the constants table
     
-    """ Multipies by -1 a certain expresion if it has a "-" at
+    """ Multipies by -1 the result of an expresion if it has a "-" at
         its left  """
     def change_sign(self, sign):
         if sign == "-":
-            self.current_cte_type = tokens.INT
-            self.push_constant_data("-1")
-            negative = self.p_values.pop()
-            value = self.p_values.pop()
-            value_type = self.get_direction_type(value)
-            direction = self.get_variable_direction(value_type)
+            self.current_cte_type = tokens.INT      # indicating that the constant that's going to be added is an integer
+            self.push_constant_data("-1")           # adding the -1 as a constant
+            negative = self.p_values.pop()          # removing the -1 from the p_values stack so it causes no conflict
+            value = self.p_values.pop()             # retrieving the value to which we are going to change the sign
+            value_type = self.get_direction_type(value) 
+            direction = self.get_variable_direction(value_type)  
             self.quadruples.append([tokens.MULT, negative, value, direction])
-            self.p_values.append(direction)
+            self.p_values.append(direction)         # adding to the p_values stack the number with the changed sign
     
     """ Pushes an operator to the p_operators stack """
     def push_operator(self, operator):
@@ -367,7 +373,7 @@ class Compiler:
             self.quadruples.append([operator, left_operand, right_operand, new_direction])
             self.p_values.append(new_direction)
 
-    """ Obtain the direction of a variable given the id """
+    """ Obtaining the direction of a variable given the id """
     def get_variable(self, id):
         var_context = self.get_variable_context(id)
         if var_context == None:
@@ -447,7 +453,7 @@ class Compiler:
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index-1][3] = len(self.quadruples)
 
-    """ generates a go to for the program to ignore the "if" portion of the code"""
+    """ generates a go to for the program to ignore the 'if' portion of the code"""
     def generate_else_go_to(self):
         quad_index = self.p_jumps.pop()
         self.quadruples[quad_index][3] = len(self.quadruples) + 1
@@ -472,7 +478,9 @@ class Compiler:
         function = self.functions[function_call]
         if self.c_function_params >= len(function[tokens.PARAMS]):
             raise TypeError('function ', function_call, ' takes exactly ', len(function[tokens.PARAMS]), ' params.')
+        # retrieving the name of the parameter that's going to be assigned 
         var_name = function[tokens.PARAMS][self.c_function_params]
+        # updating the counter of the current parameter
         self.c_function_params += 1
         variable = function[tokens.VARS][var_name]
         var_type = variable[0]
@@ -482,33 +490,34 @@ class Compiler:
         if (argument_type != var_type):
             raise TypeError('Argument type error')
         # [type, direction, [dim_one, dim_two], [dim_two, 0]]
-        if (variable[2] != None and self.is_array(argument)):
+        if (variable[2] != None and self.is_array(argument)): # the argument is an array and so is the parameter
             dims_size = self.get_size_array(argument)
-            size = dims_size[0] * (dims_size[1] if dims_size[1] != None else 1)
-            if variable[3] == None and dims_size[1] != None:
+            size = dims_size[0] * (dims_size[1] if dims_size[1] != None else 1) # total number of addresses of the array
+            if variable[3] == None and dims_size[1] != None: # parameter is a one dim array and the argument is a two dim array
                 raise MemoryError('Memory error')
-            if variable[3] != None and dims_size[1] == None:
+            if variable[3] != None and dims_size[1] == None: # parameter is a two dim array and the argument is a one dim array
                 raise MemoryError('Memory error')
-            if variable[2][0] != dims_size[0] or (variable[3] != None and variable[3][0] != dims_size[1]):
+            if variable[2][0] != dims_size[0] or (variable[3] != None and variable[3][0] != dims_size[1]): # parameter and argument have different dimensions size
                 raise MemoryError('Memory error')
             self.quadruples.append([tokens.ASSIGN_ARRAY_PARAM, argument, argument + size, var_direction])
         else:
             self.quadruples.append([tokens.ASSIGN_PARAM, argument, None, var_direction])
 
-    """ Retruns the size of an array or matriz given its direction """
+    """ Retruns the size [dim1, dim2] of an array or matriz given its direction """
     def get_size_array(self, direction):
+        # iterating through the vars of the current function
         for value in self.functions[self.current_function][tokens.VARS].items():
-            if value[1][1] == direction:
-                dim_one = value[1][2]
-                dim_two = value[1][3]
+            if value[1][1] == direction: # the variable's direction matches the direction that we're looking for
+                dim_one = value[1][2] # retrieving dimension size
+                dim_two = value[1][3] # retrieving dimension size
                 if (dim_two != None):
                     return [dim_one[0], dim_two[0]]
                 elif (dim_one != None):
                     return [dim_one[0], None]
         for value in self.functions[tokens.GLOBAL][tokens.VARS].items():
-            if value[1][1] == direction:
-                dim_one = value[1][2]
-                dim_two = value[1][3]
+            if value[1][1] == direction: # the variable's direction matches the direction that we're looking for
+                dim_one = value[1][2] # retrieving dimension size
+                dim_two = value[1][3] # retrieving dimension size
                 if (dim_two != None):
                     return [dim_one[0], dim_two[0]]
                 elif (dim_one != None):
@@ -549,15 +558,6 @@ class Compiler:
     def remove_fake_bottom(self):
         self.p_operators.pop()
 
-    """ Receives a variable id and returns its corresponding context """
-    def get_variable_context(self, var_id):
-        if var_id in self.functions[self.current_function][tokens.VARS]:
-            return self.current_function
-        elif var_id in self.functions[tokens.GLOBAL][tokens.VARS]:
-            return tokens.GLOBAL
-        else:
-            return None
-
     """ Raises an error when the variable is not a one dimension array """
     def verify_one_dim_array(self, function_id, var_id):
         if self.functions[function_id][tokens.VARS][var_id][2] == None:
@@ -589,10 +589,9 @@ class Compiler:
 
         self.quadruples.append([tokens.VER, value, None, dim_one]) # Verify limits
         self.current_cte_type = tokens.INT
-        self.push_constant_data(direction)
-        constant = self.p_values.pop()
-        #Sum the base direction with the offset
-        self.quadruples.append([tokens.PLUS_POINTER, value, constant, temp_direction])
+        self.push_constant_data(direction) # storing the base direction as a constant so it can be retrieved at execution
+        constant = self.p_values.pop() 
+        self.quadruples.append([tokens.PLUS_POINTER, value, constant, temp_direction]) # Sum the base direction with the offset
         self.p_values.append(temp_direction) # push pointer to array position
         self.p_operators.pop() # pop fake bottom
 
@@ -605,7 +604,7 @@ class Compiler:
         self.verify_two_dim_array(array_context, id)
 
         dim_one = self.functions[array_context][tokens.VARS][id][2][0]
-        m = self.functions[array_context][tokens.VARS][id][2][1] ######
+        m = self.functions[array_context][tokens.VARS][id][2][1] 
         dim_two = self.functions[array_context][tokens.VARS][id][3][0]
         base_direction = self.functions[array_context][tokens.VARS][id][1]
         type = self.functions[array_context][tokens.VARS][id][0]
@@ -622,19 +621,17 @@ class Compiler:
         t_jump = self.get_variable_direction(tokens.INT)
 
         self.quadruples.append([tokens.MULT, pos_1, m_direction, t_jump])
-
         self.quadruples.append([tokens.VER, pos_2, None, dim_two]) # Verify limits dim 2
 
         t_offset = self.get_variable_direction(tokens.INT)
         self.quadruples.append([tokens.PLUS, t_jump, pos_2, t_offset])
 
         self.current_cte_type = tokens.INT
-        self.push_constant_data(base_direction)
+        self.push_constant_data(base_direction) # storing the base direction as a constant so it can be retrieved at execution
         constant = self.p_values.pop()
         temp_direction = self.get_pointer_direction(type)
 
-        #Sum the base direction with the offset
-        self.quadruples.append([tokens.PLUS_POINTER, t_offset, constant, temp_direction]) 
+        self.quadruples.append([tokens.PLUS_POINTER, t_offset, constant, temp_direction]) # Sum the base direction with the offset
         self.p_values.append(temp_direction) # push pointer to array position
         self.p_operators.pop() # pop fake bottom
 
@@ -714,8 +711,8 @@ class Compiler:
             prob = self.p_values.pop()
             return_value = self.get_variable_direction(tokens.FLOAT)
             self.p_values.append(return_value)
-            # We needed a quintuple that why we added 2 quadruples to fill all the 
-            #   required parameters of a binomial function
+            # This quadruple is divided in two so it can fit all
+            #   the parameters the function needs
             self.quadruples.append([tokens.PROB_BINOMIAL, None, None, return_value])
             self.quadruples.append([None, prob, n, k]) 
         elif func_name == tokens.EXP_BINOMIAL:

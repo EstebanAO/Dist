@@ -6,8 +6,14 @@ main {
   var f:float;
   var b:bool;
 
-  print("i: ", i);
-  print("c: ", c);
-  print("f: ", f);
-  print("b :", b);
+  println("i: ", i);
+  println("c: ", c);
+  println("f: ", f);
+  println("b: ", b);
 }
+
+// resultados esperados:
+// i: 0
+// c: a
+// f: 0.0
+// b: false

@@ -1,9 +1,9 @@
 program test21;
 
 fun hola(arr[5][5]:int, r:int,arr2[3]:int ) : void {
-    print(arr[3][0]);
-    print(arr2[2]);
-    print(r);
+    println(arr[3][0]);
+    println(arr2[2]);
+    println(r);
 
 }
 
@@ -25,7 +25,7 @@ fun hola4(arr2[3][3]:int ) : int {
     while(iR < 3){
         iC = 0;
         while(iC < 3){
-            print(arr2[iR][iC]);
+            println(arr2[iR][iC]);
             iC = iC + 1;
         };
         iR = iR + 1;

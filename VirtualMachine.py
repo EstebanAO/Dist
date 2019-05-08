@@ -406,7 +406,7 @@ class VirtualMachine:
                 SpecialFunctions.plot_histogram(list)
                 
             self.actual_index += 1
-        self.print_stuff()
+        # self.print_stuff()
 
     """ This functions internally converts an array to a pyhton list """
     def array_to_list(self, direction):
