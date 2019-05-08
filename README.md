@@ -2,6 +2,24 @@ README
 
 El lenguaje de programación Dist es un lenguaje diseñado para el aprendizaje de funciones estadísticas básicas para alumnos de secundaria y preparatoria. Algunas de las funciones que permite el lenguaje son: 
 
+Para poder utilizar Dist se debe de instalar:
+
+Python 3
+    - pandas
+    - matplotlib
+    - numpy
+    - pandas
+    - pickle
+
+Antlr4 (Recuerda agregar las variables de ambiente de Antlr)
+
+Para compilar se debe de correr en la terminal dentro de la carpeta del repositorio de Dist:
+antlr4 -Dlanguage=Python3 dist.g4
+
+python3 dist.py nombreDelArchivo.dist
+
+python3 run_dist.py nombreDelPrograma.stv ("stv" es la extensión del código intermedio)
+
 ```
 pow(a:float, val:float): Regresa la potencia ‘a’ del valor ‘val’.
 
@@ -119,4 +137,7 @@ main{
 }
 ```
 
-
+Omar Iván Flores Quijada
+Esteban Arocha Ortuño
+Enero - Mayo 2019
+ITESM
