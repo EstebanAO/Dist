@@ -1,3 +1,8 @@
+# Omar Iván Flores Quijada
+# Esteban Arocha Ortuño
+# Enero - Mayo 2019
+# ITESM
+
 from tokens import *
 SEM_CUBE = {
         INT: {

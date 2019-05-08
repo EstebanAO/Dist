@@ -1,3 +1,8 @@
+# Omar Iván Flores Quijada
+# Esteban Arocha Ortuño
+# Enero - Mayo 2019
+# ITESM
+
 MEMORY_RANGE = 40000
 G_CHAR = 0
 G_INT = 40000

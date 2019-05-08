@@ -1,3 +1,8 @@
+# Omar Iván Flores Quijada
+# Esteban Arocha Ortuño
+# Enero - Mayo 2019
+# ITESM
+
 import sys
 from VirtualMachine import VirtualMachine
 def main(argv):

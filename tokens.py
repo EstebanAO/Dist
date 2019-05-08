@@ -1,3 +1,8 @@
+# Omar Iván Flores Quijada
+# Esteban Arocha Ortuño
+# Enero - Mayo 2019
+# ITESM
+
 VAR = "var"
 CTE = "cte"
 FUN = "fun"
